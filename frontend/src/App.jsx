@@ -626,18 +626,42 @@ function App() {
             </div>
           </div>
 
-          <div className="sidebar-note">
-            <span className="note-star" aria-hidden="true">
-              ✳
-            </span>
+          <div className="hacktoberfest-card">
+            <div className="hf-decoration hf-decoration-one">✳</div>
+            <div className="hf-decoration hf-decoration-two">✦</div>
+            <div className="hf-decoration hf-decoration-three">+</div>
 
-            <p className="eyebrow">LESS NOISE. MORE IDEAS.</p>
-            <h3>Good work deserves to be understood.</h3>
+            <div className="hf-topline">
+              <span>READYOU</span>
+              <span>2026</span>
+            </div>
 
-            <p>
-              Every briefing links to the original project so you can dig deeper
-              into what interests you.
+            <div className="hf-sticker">OPEN SOURCE</div>
+
+            <p className="hf-kicker">THE OCTOBER EDITION</p>
+
+            <h3>
+              HACKTOBER
+              <br />
+              <span>FEST.</span>
+            </h3>
+
+            <p className="hf-description">
+              Cool ideas. Clever code. Projects worth knowing about.
             </p>
+
+            <div className="hf-divider" />
+
+            <div className="hf-footer">
+              <div>
+                <strong>{projects.length}</strong>
+                <span>PROJECTS TO EXPLORE</span>
+              </div>
+
+              <a href="#digest" aria-label="Explore the project digest">
+                LET'S GO ↗
+              </a>
+            </div>
           </div>
         </aside>
       </div>
