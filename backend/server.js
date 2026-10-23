@@ -2,6 +2,8 @@ require("dotenv").config();
 const challengeRoutes = require("./routes/challenge.routes");
 const winnerRoutes = require("./routes/winner.routes");
 const projectResearchRoutes = require("./routes/project-research.routes");
+const digestRoutes = require("./routes/digest.routes");
+const audioRoutes = require("./routes/audio.routes");
 const express = require("express");
 
 const app = express();
@@ -11,6 +13,8 @@ app.use(express.json());
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/winners", winnerRoutes);
 app.use("/api/project-research", projectResearchRoutes);
+app.use("/api/digests", digestRoutes);
+app.use("/api/audio", audioRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({
