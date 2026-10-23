@@ -1013,3 +1013,169 @@ button:disabled {
     animation-duration: 0.01ms !important;
   }
 }
+/* Sticky Hacktoberfest sidebar */
+.sidebar {
+  position: sticky;
+  top: 22px;
+  align-self: start;
+}
+
+/* Funky editorial poster */
+.hacktoberfest-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 25px 23px 22px;
+  border: 1.5px solid #24211f;
+  border-radius: 20px;
+  background: #ff6028;
+  color: #24211f;
+  box-shadow: 5px 5px 0 #24211f;
+}
+
+.hf-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 17px;
+  border-bottom: 1.5px solid rgba(36, 33, 31, 0.35);
+  font-family: "DM Mono", monospace;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.035em;
+}
+
+.hf-sticker {
+  display: inline-block;
+  margin-top: 22px;
+  padding: 7px 10px;
+  border: 1.5px solid #24211f;
+  border-radius: 5px;
+  background: #e5f887;
+  font-family: "DM Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  transform: rotate(-3deg);
+}
+
+.hf-kicker {
+  position: relative;
+  margin: 25px 0 8px;
+  font-family: "DM Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+}
+
+.hacktoberfest-card h3 {
+  position: relative;
+  margin: 0;
+  font-size: clamp(2.8rem, 4vw, 4rem);
+  font-weight: 700;
+  line-height: 0.86;
+  letter-spacing: -0.095em;
+}
+
+.hacktoberfest-card h3 span {
+  color: #fff9ef;
+  -webkit-text-stroke: 1px #24211f;
+}
+
+.hf-description {
+  position: relative;
+  max-width: 230px;
+  margin: 20px 0;
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+.hf-divider {
+  height: 1.5px;
+  background: rgba(36, 33, 31, 0.35);
+}
+
+.hf-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.hf-footer > div {
+  display: grid;
+  gap: 3px;
+}
+
+.hf-footer strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.85rem;
+  line-height: 1;
+}
+
+.hf-footer > div span {
+  font-family: "DM Mono", monospace;
+  font-size: 0.57rem;
+  letter-spacing: 0.025em;
+}
+
+.hf-footer a {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 10px 11px;
+  border: 1.5px solid #24211f;
+  border-radius: 8px;
+  background: #24211f;
+  color: #fff9ef;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 150ms ease;
+}
+
+.hf-footer a:hover {
+  transform: translateY(-3px) rotate(-2deg);
+}
+
+.hf-decoration {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hf-decoration-one {
+  top: 100px;
+  right: 20px;
+  color: #e5f887;
+  font-size: 5rem;
+  transform: rotate(15deg);
+}
+
+.hf-decoration-two {
+  right: 34px;
+  bottom: 90px;
+  color: #fff9ef;
+  font-size: 2.7rem;
+  transform: rotate(-15deg);
+}
+
+.hf-decoration-three {
+  top: 175px;
+  right: 30px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+}
+
+/* Keep the sidebar in normal flow on smaller screens */
+@media (max-width: 760px) {
+  .sidebar {
+    position: static;
+  }
+
+  .hacktoberfest-card {
+    max-width: none;
+  }
+}
