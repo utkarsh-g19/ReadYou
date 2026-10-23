@@ -4,6 +4,7 @@ const winnerRoutes = require("./routes/winner.routes");
 const projectResearchRoutes = require("./routes/project-research.routes");
 const digestRoutes = require("./routes/digest.routes");
 const audioRoutes = require("./routes/audio.routes");
+const { startDigestScheduler } = require("./services/digest-scheduler.service");
 const express = require("express");
 
 const app = express();
@@ -25,4 +26,6 @@ app.get("/api/health", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`ReadYou server running at http://localhost:${PORT}`);
+
+  startDigestScheduler();
 });

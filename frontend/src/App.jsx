@@ -29,7 +29,10 @@ function FormattedSummary({ text }) {
     } else if (currentSection && line.trim()) {
       currentSection.lines.push(line.trim());
     } else if (!currentSection && line.trim()) {
-      currentSection = { title: "Project briefing", lines: [line.trim()] };
+      currentSection = {
+        title: "Project briefing",
+        lines: [line.trim()],
+      };
       sections.push(currentSection);
     }
   }
@@ -50,225 +53,247 @@ function FormattedSummary({ text }) {
   );
 }
 
-function ElevenLabsListenPlayer({ projects }) {
+/*
+ * Individual project audio.
+ * Uses the existing backend endpoint and cached ElevenLabs files.
+ */
+function ProjectAudioButton({ project }) {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
 
   const audioRef = useRef(null);
-  const queueRef = useRef([]);
-  const indexRef = useRef(0);
-  const runRef = useRef(0);
-  const pausedRef = useRef(false);
+  const requestRef = useRef(0);
+
+  function clearAudio() {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute("src");
+      audioRef.current.load();
+      audioRef.current = null;
+    }
+  }
 
   useEffect(() => {
-    return () => {
-      runRef.current += 1;
+    function stopForOtherProject() {
+      requestRef.current += 1;
+      clearAudio();
+      setStatus("idle");
+      setMessage("");
+    }
 
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
+    window.addEventListener("readyou-stop-project-audio", stopForOtherProject);
+
+    return () => {
+      window.removeEventListener(
+        "readyou-stop-project-audio",
+        stopForOtherProject,
+      );
+
+      requestRef.current += 1;
+      clearAudio();
     };
   }, []);
 
-  async function playNext(runId) {
-    if (runId !== runRef.current) return;
+  async function handlePlay() {
+    if (status === "loading") return;
 
-    const queue = queueRef.current;
-
-    if (indexRef.current >= queue.length) {
-      setStatus("idle");
-      setMessage("You've reached the end of this digest.");
-      audioRef.current = null;
-      pausedRef.current = false;
+    if (status === "playing" && audioRef.current) {
+      audioRef.current.pause();
+      setStatus("paused");
+      setMessage("Paused.");
       return;
     }
 
-    const project = queue[indexRef.current++];
-    const projectName = project.project?.title || "Untitled project";
+    if (status === "paused" && audioRef.current) {
+      try {
+        await audioRef.current.play();
+        setStatus("playing");
+        setMessage("Playing this introduction.");
+      } catch {
+        setStatus("error");
+        setMessage("Couldn't resume audio. Try again.");
+      }
+      return;
+    }
+
+    if (!project.submissionUrl || !project.audioIntro) {
+      setStatus("error");
+      setMessage("Audio introduction isn't available for this project yet.");
+      return;
+    }
+
+    // Stop any other project before starting this one.
+    window.dispatchEvent(new Event("readyou-stop-project-audio"));
+
+    const requestId = ++requestRef.current;
 
     setStatus("loading");
-    setMessage(
-      `Preparing ${indexRef.current} of ${queue.length}: ${projectName}`,
-    );
+    setMessage("Preparing audio...");
 
     try {
       const response = await fetch("/api/audio/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionUrl: project.submissionUrl }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          submissionUrl: project.submissionUrl,
+        }),
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success || !result.audioUrl) {
-        throw new Error(result.message || "Could not prepare project audio.");
+        throw new Error(result.message || "Could not prepare audio.");
       }
 
-      // Ignore any response that arrives after Stop or a new playback session.
-      if (runId !== runRef.current) return;
+      // Ignore responses from playback that was stopped meanwhile.
+      if (requestId !== requestRef.current) return;
 
       const audio = new Audio(result.audioUrl);
       audio.preload = "auto";
       audioRef.current = audio;
 
       audio.onended = () => {
-        if (runId === runRef.current) {
-          audioRef.current = null;
-          void playNext(runId);
-        }
+        if (requestId !== requestRef.current) return;
+
+        audioRef.current = null;
+        setStatus("finished");
+        setMessage("Finished! Replay whenever you like.");
       };
 
       audio.onerror = () => {
-        if (runId !== runRef.current) return;
+        if (requestId !== requestRef.current) return;
+
         audioRef.current = null;
         setStatus("error");
-        setMessage(
-          `Audio failed for “${projectName}”. Press Play to retry the digest.`,
-        );
+        setMessage("Audio playback failed. Try again.");
       };
 
-      if (pausedRef.current) {
-        setStatus("paused");
-        setMessage("Paused. Press Resume when you're ready.");
-        return;
-      }
-
       setStatus("playing");
-      setMessage(
-        `Playing ${indexRef.current} of ${queue.length}: ${projectName}`,
-      );
+      setMessage("Playing this introduction.");
+
       await audio.play();
     } catch (error) {
-      if (runId !== runRef.current) return;
+      if (requestId !== requestRef.current) return;
+
+      clearAudio();
       setStatus("error");
       setMessage(error.message || "Audio playback failed.");
     }
   }
 
-  function startPlayback() {
-    const availableProjects = projects.filter(
-      (project) =>
-        project.status === "completed" &&
-        typeof project.audioIntro === "string" &&
-        project.audioIntro.trim() &&
-        typeof project.submissionUrl === "string" &&
-        project.submissionUrl.trim(),
-    );
-
-    if (!availableProjects.length) {
-      setStatus("error");
-      setMessage(
-        "No completed audio introductions are available for this selection.",
-      );
-      return;
-    }
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-      audioRef.current = null;
-    }
-
-    queueRef.current = availableProjects;
-    indexRef.current = 0;
-    pausedRef.current = false;
-    runRef.current += 1;
-
-    void playNext(runRef.current);
-  }
-
-  function togglePlayback() {
-    if (status === "playing" && audioRef.current) {
-      pausedRef.current = true;
-      audioRef.current.pause();
-      setStatus("paused");
-      setMessage("Digest paused.");
-      return;
-    }
-
-    if (status === "paused") {
-      pausedRef.current = false;
-
-      if (audioRef.current) {
-        audioRef.current
-          .play()
-          .then(() => {
-            setStatus("playing");
-            setMessage("Resuming digest.");
-          })
-          .catch((error) => {
-            setStatus("error");
-            setMessage(error.message || "Could not resume audio.");
-          });
-      } else {
-        // A request may still be in flight if the player was paused mid-prepare.
-        setMessage("Resuming audio preparation...");
-      }
-      return;
-    }
-
-    startPlayback();
-  }
-
-  function stopPlayback() {
-    runRef.current += 1;
-    pausedRef.current = false;
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-      audioRef.current = null;
-    }
-
-    queueRef.current = [];
-    indexRef.current = 0;
+  function stopAudio() {
+    requestRef.current += 1;
+    clearAudio();
     setStatus("idle");
-    setMessage("Playback stopped.");
+    setMessage("Stopped.");
   }
 
   return (
-    <div className="listen-panel">
-      <span className="music-icon" aria-hidden="true">
-        ♫
-      </span>
-      <h3>Your digest, read aloud.</h3>
-      <p>Short, friendly project introductions narrated with ElevenLabs.</p>
-      <p className="subtext">
-        {projects.length} projects in the selected digest.
-      </p>
-
-      <div className="audio-controls">
-        <button
-          className="listen-button"
-          onClick={togglePlayback}
-          disabled={status === "loading"}
-        >
-          {status === "playing"
+    <div className="project-audio">
+      <button
+        type="button"
+        className={`project-audio-button ${status}`}
+        onClick={handlePlay}
+        disabled={status === "loading"}
+        aria-label={`${
+          status === "playing"
+            ? "Pause"
+            : status === "paused"
+              ? "Resume"
+              : "Listen to"
+        } ${project.project?.title || "project introduction"}`}
+      >
+        {status === "loading"
+          ? "◌ Preparing..."
+          : status === "playing"
             ? "Ⅱ Pause"
             : status === "paused"
               ? "▶ Resume"
-              : status === "loading"
-                ? "Preparing audio…"
-                : "▶ Play digest"}
-        </button>
+              : status === "finished"
+                ? "↻ Replay"
+                : status === "error"
+                  ? "↻ Try again"
+                  : "▶ Listen"}
+      </button>
 
+      {(status === "playing" || status === "paused") && (
         <button
-          className="stop-button"
-          onClick={stopPlayback}
-          disabled={status === "idle"}
+          type="button"
+          className="project-audio-stop"
+          onClick={stopAudio}
         >
-          ■ Stop
+          Stop
         </button>
+      )}
+
+      {message && (
+        <span className="project-audio-status" role="status" aria-live="polite">
+          {message}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/*
+ * Listen view: a list of individual project tracks,
+ * not one long automatically narrated digest.
+ */
+function ProjectAudioDirectory({ projects }) {
+  const playableProjects = projects.filter(
+    (project) =>
+      project.status === "completed" &&
+      typeof project.audioIntro === "string" &&
+      project.audioIntro.trim() &&
+      typeof project.submissionUrl === "string" &&
+      project.submissionUrl.trim(),
+  );
+
+  return (
+    <div className="audio-directory">
+      <div className="audio-directory-heading">
+        <span className="music-icon" aria-hidden="true">
+          ♫
+        </span>
+
+        <div>
+          <p className="eyebrow">THE LISTENING ROOM</p>
+          <h3>Pick a project. Press play.</h3>
+          <p>Short, friendly introductions. One project at a time.</p>
+        </div>
+
+        <span className="audio-count">{playableProjects.length} tracks</span>
       </div>
 
-      <p className="audio-status" role="status" aria-live="polite">
-        {message || "Ready to play."}
-      </p>
-      <p className="subtext">
-        Audio is cached on your backend after its first generation, so replaying
-        a project won't require another ElevenLabs generation.
+      {playableProjects.map((project, index) => (
+        <article
+          className="audio-list-item"
+          key={`${project.submissionUrl}-${index}`}
+        >
+          <span className="audio-track-number">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+
+          <div className="audio-track-info">
+            <h4>{project.project?.title || "Untitled project"}</h4>
+            <p>{project.project?.author || "Unknown author"}</p>
+          </div>
+
+          <ProjectAudioButton project={project} />
+        </article>
+      ))}
+
+      {playableProjects.length === 0 && (
+        <p className="audio-empty">
+          No audio introductions are available for this selection yet.
+        </p>
+      )}
+
+      <p className="audio-footnote">
+        Audio is cached after its first generation. Replaying a track won't
+        require another ElevenLabs generation.
       </p>
     </div>
   );
@@ -293,6 +318,7 @@ function App() {
         const response = await fetch("/api/digests/latest", {
           signal: controller.signal,
         });
+
         const result = await response.json();
 
         if (!response.ok || !result.success || !result.digest) {
@@ -305,11 +331,14 @@ function App() {
           setError(err.message || "Could not load the saved digest.");
         }
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadDigest();
+
     return () => controller.abort();
   }, [reloadKey]);
 
@@ -361,11 +390,13 @@ function App() {
         <main className="content">
           <section className="hero">
             <p className="eyebrow">OPEN SOURCE, WITHOUT THE OVERLOAD</p>
+
             <h1>
               Great projects.
               <br />
               <span>Better understood.</span>
             </h1>
+
             <p className="hero-description">
               Explore Hacktoberfest winning projects through clear,
               source-linked technical summaries.
@@ -392,6 +423,7 @@ function App() {
                 >
                   Read
                 </button>
+
                 <button
                   type="button"
                   role="tab"
@@ -429,6 +461,7 @@ function App() {
                     onChange={(event) => setSelectedWeek(event.target.value)}
                   >
                     <option value="all">All announcements</option>
+
                     {announcements.map((announcement) => (
                       <option
                         key={announcement.id}
@@ -446,7 +479,9 @@ function App() {
                       <div className="challenge-heading">
                         <div>
                           <p className="eyebrow">HACKTOBERFEST CHALLENGE</p>
+
                           <h3>{getChallengeName(announcement.title)}</h3>
+
                           <p className="subtext">
                             {announcement.winners?.length || 0} winning projects
                           </p>
@@ -466,6 +501,7 @@ function App() {
                       <div className="project-grid">
                         {(announcement.winners || []).map((winner, index) => {
                           const project = winner.project || {};
+
                           const repo =
                             project.repositories?.[0]?.repositoryUrl ||
                             project.githubLinks?.[0];
@@ -478,7 +514,9 @@ function App() {
                               <span className="category">
                                 {winner.category}
                               </span>
+
                               <h4>{project.title || "Untitled project"}</h4>
+
                               <p className="author">
                                 By {project.author || "Unknown author"}
                               </p>
@@ -491,6 +529,7 @@ function App() {
 
                               <div className="summary">
                                 <p className="eyebrow">READYOU BRIEFING</p>
+
                                 {winner.status === "completed" &&
                                 winner.summary ? (
                                   <div className="summary-text">
@@ -504,6 +543,12 @@ function App() {
                                 )}
                               </div>
 
+                              {winner.status === "completed" &&
+                                winner.audioIntro &&
+                                winner.submissionUrl && (
+                                  <ProjectAudioButton project={winner} />
+                                )}
+
                               <div className="source-links">
                                 {winner.submissionUrl && (
                                   <a
@@ -514,6 +559,7 @@ function App() {
                                     Read on DEV ↗
                                   </a>
                                 )}
+
                                 {repo && (
                                   <a
                                     href={repo}
@@ -532,7 +578,7 @@ function App() {
                   ))}
 
                 {view === "listen" && (
-                  <ElevenLabsListenPlayer
+                  <ProjectAudioDirectory
                     key={selectedWeek}
                     projects={projects}
                   />
@@ -554,6 +600,7 @@ function App() {
               aria-label="Select a challenge announcement"
             >
               <option value="all">All announcements</option>
+
               {announcements.map((announcement) => (
                 <option key={announcement.id} value={String(announcement.id)}>
                   {getChallengeName(announcement.title)}
@@ -562,14 +609,17 @@ function App() {
             </select>
 
             <div className="divider" />
+
             <div className="stat">
               <span>Projects</span>
               <strong>{projects.length}</strong>
             </div>
+
             <div className="stat">
               <span>Briefings ready</span>
               <strong>{readyCount}</strong>
             </div>
+
             <div className="stat">
               <span>Announcements</span>
               <strong>{visibleAnnouncements.length}</strong>
@@ -580,8 +630,10 @@ function App() {
             <span className="note-star" aria-hidden="true">
               ✳
             </span>
+
             <p className="eyebrow">LESS NOISE. MORE IDEAS.</p>
             <h3>Good work deserves to be understood.</h3>
+
             <p>
               Every briefing links to the original project so you can dig deeper
               into what interests you.
