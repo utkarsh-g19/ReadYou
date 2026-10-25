@@ -224,6 +224,33 @@ test("answers broad project questions from the saved description when Gemma retu
   assert.equal(result.citations[0].quote, project.description);
 });
 
+test("rejects Gemma's generic fallback even when it appends a valid quote, then explains the project overview", async () => {
+  const project = {
+    ...projectA,
+    title: "Outside",
+    description: "Nature apps have an awkward habit: they get you outside, then ask you to look at your phone.",
+    markdown: [
+      "Nature apps have an awkward habit: they get you outside, then ask you to look at your phone.",
+      "# What I Built",
+      "Outside is a local walking companion that recommends one nearby outdoor plan based on the weather and your available time.",
+    ].join("\n\n"),
+  };
+  const service = serviceWith({
+    project,
+    answer: JSON.stringify({ claims: [{
+      text: "I couldn't put that together clearly, but I did find this relevant detail: Nature apps have an awkward habit: they get you outside, then ask you to look at your phone.",
+      evidence: [{ sourceId: "dev", heading: null, quote: project.description }],
+    }] }),
+    recoveryAnswer: '{"claims":[]}',
+  });
+
+  const result = await service.ask({ projectId: projectAUrl, question: "What does it do?", includeSources: true });
+
+  assert.match(result.answer, /local walking companion that recommends one nearby outdoor plan/i);
+  assert.doesNotMatch(result.answer, /couldn't put that together|relevant detail/i);
+  assert.equal(result.citations[0].heading, "What I Built");
+});
+
 test("recognizes 'what is this project all about' and skips challenge boilerplate", async () => {
   const challengeCopy = "This is a submission for the Hacktoberfest Open-Source AI Challenge Week 1: Touch Grass.";
   const project = {

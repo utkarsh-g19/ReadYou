@@ -242,6 +242,30 @@ function buildRecoveryPrompt(project, sources, question, responseLanguage) {
 }
 
 function createOverviewEvidenceFallback(sources) {
+  const article = sources.find((source) => source.sourceId === "dev");
+  const paragraphs = article?.sections.flatMap((section) =>
+    section.text
+      .split(/\s*\n\s*\n\s*/)
+      .map((text) => ({ heading: section.heading, text: normalizeWhitespace(text) }))
+      .filter(({ text }) =>
+        text.length >= 35 &&
+        !text.includes("<!--") &&
+        !isSubmissionBoilerplate(text) &&
+        !/^!?\[.*\]\(https?:\/\//i.test(text),
+      ),
+  ) || [];
+  const useful = paragraphs.find(({ heading }) =>
+    /what i built|overview|about|the idea|project description/i.test(heading || ""),
+  );
+  if (useful && article) {
+    const quote = useful.text.slice(0, 500);
+    const answer = `It’s ${cleanOverviewText(quote)}`;
+    return {
+      answer,
+      citations: [{ claim: answer, label: article.label, url: article.url, heading: useful.heading, quote }],
+    };
+  }
+
   const descriptionSource = sources.find((source) => source.sourceId === "dev-description");
   const description = descriptionSource?.sections.find((section) =>
     section.text.trim() && !isSubmissionBoilerplate(section.text),
@@ -261,25 +285,12 @@ function createOverviewEvidenceFallback(sources) {
     };
   }
 
-  const article = sources.find((source) => source.sourceId === "dev");
   if (!article) return null;
-  const paragraphs = article.sections.flatMap((section) =>
-    section.text
-      .split(/\s*\n\s*\n\s*/)
-      .map((text) => ({ heading: section.heading, text: normalizeWhitespace(text) }))
-      .filter(({ text }) =>
-        text.length >= 35 &&
-        !text.includes("<!--") &&
-        !isSubmissionBoilerplate(text) &&
-        !/^!?\[.*\]\(https?:\/\//i.test(text),
-      ),
-  );
-  const useful = paragraphs.find(({ heading }) =>
-    /what i built|overview|about|the idea|project/i.test(heading || ""),
-  ) || paragraphs[0];
-  if (!useful) return null;
+  const fallbackParagraph = paragraphs.find(({ heading }) => /project|purpose/i.test(heading || "")) || paragraphs[0];
+  const usefulArticleParagraph = fallbackParagraph;
+  if (!usefulArticleParagraph) return null;
 
-  const quote = useful.text.slice(0, 500);
+  const quote = usefulArticleParagraph.text.slice(0, 500);
   const answer = `The submission describes the project as: ${cleanOverviewText(quote)}`;
   return {
     answer,
@@ -287,7 +298,7 @@ function createOverviewEvidenceFallback(sources) {
       claim: answer,
       label: article.label,
       url: article.url,
-      heading: useful.heading,
+      heading: usefulArticleParagraph.heading,
       quote,
     }],
   };
@@ -471,6 +482,9 @@ function parseClaims(raw, sources) {
 
   for (const claim of parsed.claims.slice(0, 8)) {
     if (typeof claim?.text !== "string" || !claim.text.trim() || claim.text.length > 800) continue;
+    // These are model-side recovery phrases, not answers. They can otherwise
+    // pass quote validation just because the model appends a real source quote.
+    if (/\b(?:couldn['’]?t put (?:that|it) together|did find this relevant detail|can['’]?t answer (?:that|this) clearly)\b/i.test(claim.text)) continue;
     const evidence = [];
     for (const item of (Array.isArray(claim.evidence) ? claim.evidence : []).slice(0, 3)) {
       const source = sourceMap.get(item?.sourceId);
