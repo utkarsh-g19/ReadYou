@@ -13,6 +13,9 @@ const STATE_FILE = path.join(REPORTS_DIR, "readyou-state.json");
 const LATEST_DIGEST_FILE = path.join(REPORTS_DIR, "latest-digest.json");
 
 const jobs = new Map();
+const chatSourceBundles = new Map();
+const CHAT_SOURCE_TTL_MS = 60 * 60 * 1000;
+const MAX_CHAT_SOURCE_BUNDLES = 100;
 let activeJobId = null;
 
 function buildAudioIntro(project = {}, summary = "") {
@@ -199,6 +202,20 @@ function toSourceContext(project) {
       readme: (repository.readme || "").slice(0, 4000),
     })),
   };
+}
+
+function sameDevArticleUrl(first, second) {
+  try {
+    const a = new URL(first);
+    const b = new URL(second);
+    const aSlug = a.pathname.split("/").filter(Boolean).at(-1);
+    const bSlug = b.pathname.split("/").filter(Boolean).at(-1);
+    return a.protocol === "https:" && b.protocol === "https:" &&
+      a.hostname === "dev.to" && b.hostname === "dev.to" &&
+      Boolean(aSlug) && aSlug === bSlug;
+  } catch {
+    return false;
+  }
 }
 
 function createRegeneratedCacheEntry(cached, project, summary, processedAt) {
@@ -509,6 +526,54 @@ function getJob(jobId) {
 
 async function getLatestDigest() {
   return readJson(LATEST_DIGEST_FILE, null);
+}
+
+async function getChatProjectSources(submissionUrl) {
+  const now = Date.now();
+  const inMemory = chatSourceBundles.get(submissionUrl);
+  if (inMemory && now - inMemory.cachedAt < CHAT_SOURCE_TTL_MS) {
+    return inMemory.bundle;
+  }
+  if (inMemory) chatSourceBundles.delete(submissionUrl);
+
+  const state = await loadState();
+  const cached = state.processedWinners[submissionUrl];
+  if (!cached || !sameDevArticleUrl(cached.project?.url, submissionUrl)) return null;
+
+  let sourceContext = cached.sourceContext;
+  let sourceTitle = cached.project.title;
+  let sourceDescription = cached.project.description || "";
+  if (!sourceContext?.markdown?.trim()) {
+    // Legacy entries need only one DEV article fetch. Avoid GitHub crawling and
+    // Ollama relevance checks on the chat request's latency-sensitive path.
+    const project = await projectResearchService.getSubmissionArticleByUrl(submissionUrl);
+    if (!sameDevArticleUrl(project.url, submissionUrl) || !project.markdown?.trim()) return null;
+    sourceTitle = project.title || sourceTitle;
+    sourceDescription = project.description || sourceDescription;
+    sourceContext = { markdown: project.markdown, repositories: [] };
+  }
+
+  if (!sourceContext.markdown?.trim()) return null;
+
+  const bundle = {
+    projectId: submissionUrl,
+    submissionUrl: cached.project.url,
+    title: sourceTitle || "Untitled project",
+    description: sourceDescription,
+    markdown: sourceContext.markdown,
+    repositories: (sourceContext.repositories || [])
+      .filter((repository) => repository.repositoryUrl && repository.readme)
+      .map((repository) => ({
+        repositoryUrl: repository.repositoryUrl,
+        readme: repository.readme,
+      })),
+  };
+  chatSourceBundles.delete(submissionUrl);
+  chatSourceBundles.set(submissionUrl, { bundle, cachedAt: now });
+  while (chatSourceBundles.size > MAX_CHAT_SOURCE_BUNDLES) {
+    chatSourceBundles.delete(chatSourceBundles.keys().next().value);
+  }
+  return bundle;
 }
 
 async function runSummaryRegeneration(job, submissionUrls) {
@@ -863,5 +928,6 @@ module.exports = {
   startSummaryRegeneration,
   getJob,
   getLatestDigest,
+  getChatProjectSources,
   createRegeneratedCacheEntry,
 };

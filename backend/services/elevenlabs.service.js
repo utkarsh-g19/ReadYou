@@ -113,6 +113,83 @@ async function generateOrGetAudio(submissionUrl, text) {
   }
 }
 
+async function transcribeVoiceQuestion(audioBuffer, mimeType = "audio/webm", signal) {
+  if (!Buffer.isBuffer(audioBuffer) || audioBuffer.length === 0) {
+    throw new Error("A voice recording is required.");
+  }
+  if (audioBuffer.length > 8 * 1024 * 1024) {
+    throw new Error("The recording is too large. Try a shorter question.");
+  }
+
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not configured.");
+
+  const safeMimeType = /^audio\/[a-z0-9.+-]+(?:\s*;.*)?$/i.test(mimeType)
+    ? mimeType.split(";")[0].trim().toLowerCase()
+    : "audio/webm";
+  const extension = safeMimeType.split("/")[1].replace(/[^a-z0-9]/g, "") || "webm";
+  const form = new FormData();
+  form.append("file", new Blob([audioBuffer], { type: safeMimeType }), `question.${extension}`);
+  form.append("model_id", process.env.ELEVENLABS_STT_MODEL || "scribe_v2");
+  form.append("no_verbatim", "true");
+  form.append("tag_audio_events", "false");
+
+  const response = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+    method: "POST",
+    headers: { "xi-api-key": apiKey },
+    body: form,
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`ElevenLabs transcription failed (${response.status}).`);
+  }
+
+  const result = await response.json();
+  const transcript = typeof result.text === "string" ? result.text.trim() : "";
+  if (!transcript) throw new Error("I couldn't hear a question in that recording. Try again or type it instead.");
+  return transcript;
+}
+
+async function generateConversationalSpeech(text, signal) {
+  const speechText = String(text || "").trim();
+  if (!speechText || speechText.length > 1600) {
+    throw new Error("Spoken answers must contain between 1 and 1,600 characters.");
+  }
+
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not configured.");
+
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || "JBFqnCBsd6RMkjVDRZzb";
+  const endpoint = new URL(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`);
+  endpoint.searchParams.set("output_format", "mp3_44100_128");
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "xi-api-key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "audio/mpeg",
+    },
+    body: JSON.stringify({
+      text: speechText,
+      model_id: process.env.ELEVENLABS_CHAT_MODEL || "eleven_flash_v2_5",
+      voice_settings: {
+        stability: 0.42,
+        similarity_boost: 0.75,
+        style: 0.35,
+        use_speaker_boost: true,
+      },
+    }),
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`ElevenLabs speech generation failed (${response.status}).`);
+  }
+
+  const audio = Buffer.from(await response.arrayBuffer());
+  if (!audio.length) throw new Error("ElevenLabs returned empty speech audio.");
+  return audio;
+}
+
 async function getCachedAudioPath(cacheKey) {
   if (!/^[a-f0-9]{64}$/.test(cacheKey)) {
     return null;
@@ -126,4 +203,6 @@ async function getCachedAudioPath(cacheKey) {
 module.exports = {
   generateOrGetAudio,
   getCachedAudioPath,
+  transcribeVoiceQuestion,
+  generateConversationalSpeech,
 };

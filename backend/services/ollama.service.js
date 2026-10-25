@@ -2,6 +2,10 @@ const BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
 const MODEL = process.env.OLLAMA_MODEL || "gemma4:e2b";
 
 async function generateText(prompt, options = {}) {
+  const requestOptions = {
+    temperature: options.temperature ?? 0.2,
+    num_predict: options.numPredict ?? 1200,
+  };
   const response = await fetch(`${BASE_URL}/api/generate`, {
     method: "POST",
     headers: {
@@ -11,12 +15,11 @@ async function generateText(prompt, options = {}) {
       model: MODEL,
       prompt,
       stream: false,
-      options: {
-        temperature: options.temperature ?? 0.2,
-        num_predict: options.numPredict ?? 1200,
-      },
+      ...(options.format ? { format: options.format } : {}),
+      options: requestOptions,
       think: false,
     }),
+    ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
   });
 
   if (!response.ok) {
@@ -35,6 +38,15 @@ async function generateText(prompt, options = {}) {
   }
 
   return result;
+}
+
+function generateChatAnswer(prompt) {
+  return generateText(prompt, {
+    temperature: 0.65,
+    numPredict: 600,
+    timeoutMs: 90000,
+    format: "json",
+  });
 }
 
 const REPOSITORY_RELEVANCE_THRESHOLD = 0.85;
@@ -264,4 +276,5 @@ module.exports = {
   classifyRepositoryRelevance,
   generateSummary,
   generateAudioIntro,
+  generateChatAnswer,
 };

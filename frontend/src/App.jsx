@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import ProjectChat from "./ProjectChat.jsx";
+import VoiceMentor from "./VoiceMentor.jsx";
 
 function getChallengeName(title = "") {
   return title
@@ -371,68 +373,6 @@ function ProjectAudioButton({ project }) {
   );
 }
 
-/*
- * Listen view: a list of individual project tracks,
- * not one long automatically narrated digest.
- */
-function ProjectAudioDirectory({ projects }) {
-  const playableProjects = projects.filter(
-    (project) =>
-      project.status === "completed" &&
-      typeof project.audioIntro === "string" &&
-      project.audioIntro.trim() &&
-      typeof project.submissionUrl === "string" &&
-      project.submissionUrl.trim(),
-  );
-
-  return (
-    <div className="audio-directory">
-      <div className="audio-directory-heading">
-        <span className="music-icon" aria-hidden="true">
-          ♫
-        </span>
-
-        <div>
-          <p className="eyebrow">THE LISTENING ROOM</p>
-          <h3>Pick a project. Press play.</h3>
-          <p>Short, friendly introductions. One project at a time.</p>
-        </div>
-
-        <span className="audio-count">{playableProjects.length} tracks</span>
-      </div>
-
-      {playableProjects.map((project, index) => (
-        <article
-          className="audio-list-item"
-          key={`${project.submissionUrl}-${index}`}
-        >
-          <span className="audio-track-number">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-
-          <div className="audio-track-info">
-            <h4>{project.project?.title || "Untitled project"}</h4>
-            <p>{project.project?.author || "Unknown author"}</p>
-          </div>
-
-          <ProjectAudioButton project={project} />
-        </article>
-      ))}
-
-      {playableProjects.length === 0 && (
-        <p className="audio-empty">
-          No audio introductions are available for this selection yet.
-        </p>
-      )}
-
-      <p className="audio-footnote">
-        Audio is cached after its first generation. Replaying a track won't
-        require another ElevenLabs generation.
-      </p>
-    </div>
-  );
-}
-
 function App() {
   const [digest, setDigest] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -561,11 +501,11 @@ function App() {
                 <button
                   type="button"
                   role="tab"
-                  aria-selected={view === "listen"}
-                  className={view === "listen" ? "tab active" : "tab"}
-                  onClick={() => setView("listen")}
+                  aria-selected={view === "talk"}
+                  className={view === "talk" ? "tab active" : "tab"}
+                  onClick={() => setView("talk")}
                 >
-                  Listen ♫
+                  Talk
                 </button>
               </div>
             </div>
@@ -683,6 +623,14 @@ function App() {
                                   <ProjectAudioButton project={winner} />
                                 )}
 
+                              {winner.status === "completed" && winner.submissionUrl && (
+                                <ProjectChat
+                                  key={winner.submissionUrl}
+                                  projectId={winner.submissionUrl}
+                                  projectTitle={project.title || "this project"}
+                                />
+                              )}
+
                               <div className="source-links">
                                 {winner.submissionUrl && (
                                   <a
@@ -711,8 +659,8 @@ function App() {
                     </section>
                   ))}
 
-                {view === "listen" && (
-                  <ProjectAudioDirectory
+                {view === "talk" && (
+                  <VoiceMentor
                     key={selectedWeek}
                     projects={projects}
                   />

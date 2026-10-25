@@ -59,7 +59,7 @@ async function getArticleWithCanonicalFallback(username, slug, submissionUrl) {
   }
 }
 
-async function getSubmissionByUrl(submissionUrl) {
+async function getSubmissionArticleByUrl(submissionUrl) {
   const parsedUrl = new URL(submissionUrl);
 
   if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== "dev.to") {
@@ -80,7 +80,19 @@ async function getSubmissionByUrl(submissionUrl) {
     slug,
     submissionUrl,
   );
-  const markdown = article.body_markdown || "";
+  return {
+    title: article.title,
+    url: article.url,
+    description: article.description || "",
+    author: article.user?.name || article.user?.username || "Unknown",
+    publishedAt: article.published_at,
+    markdown: article.body_markdown || "",
+  };
+}
+
+async function getSubmissionByUrl(submissionUrl) {
+  const project = await getSubmissionArticleByUrl(submissionUrl);
+  const markdown = project.markdown;
 
   const githubLinks = [
     ...new Set(
@@ -113,26 +125,23 @@ async function getSubmissionByUrl(submissionUrl) {
     }
   }
 
-  const project = {
-    title: article.title,
-    url: article.url,
-    description: article.description || "",
-    author: article.user?.name || article.user?.username || "Unknown",
-    publishedAt: article.published_at,
+  const submission = {
+    ...project,
     markdown,
     githubLinks,
   };
   const repositories = await repositoryRelevanceService.selectRelevantRepositories(
-    project,
+    submission,
     candidates,
   );
 
   return {
-    ...project,
+    ...submission,
     repositories,
   };
 }
 
 module.exports = {
   getSubmissionByUrl,
+  getSubmissionArticleByUrl,
 };
