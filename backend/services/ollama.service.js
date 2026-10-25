@@ -49,6 +49,15 @@ function generateChatAnswer(prompt) {
   });
 }
 
+function generateChatRecoveryAnswer(prompt) {
+  return generateText(prompt, {
+    temperature: 0.25,
+    numPredict: 260,
+    timeoutMs: 30000,
+    format: "json",
+  });
+}
+
 const REPOSITORY_RELEVANCE_THRESHOLD = 0.85;
 
 function parseRepositoryRelevance(output) {
@@ -277,4 +286,5 @@ module.exports = {
   generateSummary,
   generateAudioIntro,
   generateChatAnswer,
+  generateChatRecoveryAnswer,
 };

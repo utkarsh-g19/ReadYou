@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2300" height="1780" viewBox="0 0 2300 1780">
+<rect width="2300" height="1780" fill="#FFF8EE"/>
+<text x="82" y="104" font-family="Segoe UI, sans-serif" font-size="58" font-weight="700" fill="#25211F">ReadYou workflow</text>
+<text x="84" y="146" font-family="Segoe UI, sans-serif" font-size="27" font-weight="400" fill="#786E63">From winner announcements to source-grounded project conversations</text>
+<rect x="84" y="168" width="142" height="34" rx="12" fill="#EEE8FF" stroke="#25211F" stroke-width="1"/>
+<text x="96" y="189" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#25211F">BROWSER</text>
+<rect x="242" y="168" width="142" height="34" rx="12" fill="#FFF0E5" stroke="#25211F" stroke-width="1"/>
+<text x="254" y="189" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#25211F">BACKEND</text>
+<rect x="400" y="168" width="260" height="34" rx="12" fill="#E8F78B" stroke="#25211F" stroke-width="1"/>
+<text x="412" y="189" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#25211F">LOCAL GEMMA / OLLAMA</text>
+<rect x="678" y="168" width="195" height="34" rx="12" fill="#FFFFFF" stroke="#25211F" stroke-width="1"/>
+<text x="690" y="189" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#25211F">EXTERNAL SERVICE</text>
+<rect x="68" y="226" width="2144" height="430" rx="24" fill="#FFFCF7" stroke="#25211F" stroke-width="3"/>
+<rect x="100" y="250" width="64" height="46" rx="14" fill="#E8F78B" stroke="#25211F" stroke-width="2"/>
+<text x="113" y="280" font-family="Consolas, monospace" font-size="24" font-weight="700" fill="#25211F">01</text>
+<text x="184" y="280" font-family="Segoe UI, sans-serif" font-size="34" font-weight="700" fill="#25211F">Build the project digest</text>
+<text x="184" y="309" font-family="Segoe UI, sans-serif" font-size="20" font-weight="400" fill="#786E63">Repository documentation is checked against each submission before it reaches the summary prompt.</text>
+<rect x="92" y="338" width="360" height="248" rx="18" fill="#FFF0E5" stroke="#25211F" stroke-width="2"/>
+<rect x="109" y="353" width="74" height="28" rx="10" fill="#FFF0E5" stroke="#25211F" stroke-width="1"/>
+<text x="121" y="370" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">DEV.TO</text>
+<text x="110" y="418" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Winner sources</text>
+<text x="110" y="452" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">DEV Team announcements and DEV.to</text>
+<text x="110" y="476" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">submission articles enter the pipeline.</text>
+<rect x="512" y="338" width="360" height="248" rx="18" fill="#FFF0E5" stroke="#25211F" stroke-width="2"/>
+<rect x="529" y="353" width="82" height="28" rx="10" fill="#FFF0E5" stroke="#25211F" stroke-width="1"/>
+<text x="541" y="370" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">BACKEND</text>
+<text x="530" y="418" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Winner discovery</text>
+<text x="530" y="452" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">The backend extracts winning</text>
+<text x="530" y="476" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">submissions. A scheduler scans at</text>
+<text x="530" y="500" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">startup and every 3 hours by default.</text>
+<rect x="932" y="338" width="360" height="248" rx="18" fill="#FFF0E5" stroke="#25211F" stroke-width="2"/>
+<rect x="949" y="353" width="90" height="28" rx="10" fill="#FFF0E5" stroke="#25211F" stroke-width="1"/>
+<text x="961" y="370" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">RESEARCH</text>
+<text x="950" y="418" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Submission research</text>
+<text x="950" y="452" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">Read the article and collect up to five</text>
+<text x="950" y="476" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">linked GitHub README candidates.</text>
+<rect x="1352" y="338" width="360" height="248" rx="18" fill="#E8F78B" stroke="#25211F" stroke-width="2"/>
+<rect x="1369" y="353" width="90" height="28" rx="10" fill="#E8F78B" stroke="#25211F" stroke-width="1"/>
+<text x="1381" y="370" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">LOCAL AI</text>
+<text x="1370" y="418" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Repository relevance gate</text>
+<text x="1370" y="452" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">Gemma compares each README with</text>
+<text x="1370" y="476" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">the article. Uncertain results or errors</text>
+<text x="1370" y="500" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">exclude that README.</text>
+<rect x="1772" y="338" width="360" height="248" rx="18" fill="#EEE8FF" stroke="#25211F" stroke-width="2"/>
+<rect x="1789" y="353" width="122" height="28" rx="10" fill="#EEE8FF" stroke="#25211F" stroke-width="1"/>
+<text x="1801" y="370" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">SOURCES → UI</text>
+<text x="1790" y="418" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Briefing + digest cache</text>
+<text x="1790" y="452" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">Use the DEV article and confidently</text>
+<text x="1790" y="476" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">matched README. Gemma writes the</text>
+<text x="1790" y="500" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">briefing; JSON state is saved under</text>
+<text x="1790" y="524" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">reports/ and shown in the React</text>
+<text x="1790" y="548" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">digest.</text>
+<line x1="460" y1="462" x2="500" y2="462" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="500.0,462.0 487.6,468.5 487.6,455.5" fill="#F45B2A"/>
+<line x1="880" y1="462" x2="920" y2="462" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="920.0,462.0 907.6,468.5 907.6,455.5" fill="#F45B2A"/>
+<line x1="1300" y1="462" x2="1340" y2="462" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="1340.0,462.0 1327.6,468.5 1327.6,455.5" fill="#F45B2A"/>
+<line x1="1720" y1="462" x2="1760" y2="462" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="1760.0,462.0 1747.6,468.5 1747.6,455.5" fill="#F45B2A"/>
+<rect x="68" y="692" width="2144" height="336" rx="24" fill="#FFFCF7" stroke="#25211F" stroke-width="3"/>
+<rect x="100" y="716" width="64" height="46" rx="14" fill="#E8F78B" stroke="#25211F" stroke-width="2"/>
+<text x="113" y="746" font-family="Consolas, monospace" font-size="24" font-weight="700" fill="#25211F">02</text>
+<text x="184" y="746" font-family="Segoe UI, sans-serif" font-size="34" font-weight="700" fill="#25211F">Basic Listening</text>
+<text x="184" y="775" font-family="Segoe UI, sans-serif" font-size="20" font-weight="400" fill="#786E63">The project introduction is a separate, reusable listening path.</text>
+<rect x="130" y="790" width="400" height="158" rx="18" fill="#EEE8FF" stroke="#25211F" stroke-width="2"/>
+<rect x="147" y="805" width="82" height="28" rx="10" fill="#EEE8FF" stroke="#25211F" stroke-width="1"/>
+<text x="159" y="822" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">BROWSER</text>
+<text x="148" y="870" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Choose Listen</text>
+<text x="148" y="904" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">The reader starts a project&#x27;s short</text>
+<text x="148" y="928" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">introduction.</text>
+<rect x="650" y="790" width="400" height="158" rx="18" fill="#E8F78B" stroke="#25211F" stroke-width="2"/>
+<rect x="667" y="805" width="90" height="28" rx="10" fill="#E8F78B" stroke="#25211F" stroke-width="1"/>
+<text x="679" y="822" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">LOCAL AI</text>
+<text x="668" y="870" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Prepare intro text</text>
+<text x="668" y="904" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">Gemma turns the briefing into a concise</text>
+<text x="668" y="928" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">narration script.</text>
+<rect x="1170" y="790" width="400" height="158" rx="18" fill="#FFF0E5" stroke="#25211F" stroke-width="2"/>
+<rect x="1187" y="805" width="106" height="28" rx="10" fill="#FFF0E5" stroke="#25211F" stroke-width="1"/>
+<text x="1199" y="822" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">ELEVENLABS</text>
+<text x="1188" y="870" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Generate speech</text>
+<text x="1188" y="904" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">ElevenLabs converts the script into an MP3.</text>
+<rect x="1690" y="790" width="400" height="158" rx="18" fill="#DDF3E2" stroke="#25211F" stroke-width="2"/>
+<rect x="1707" y="805" width="114" height="28" rx="10" fill="#DDF3E2" stroke="#25211F" stroke-width="1"/>
+<text x="1719" y="822" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">LOCAL CACHE</text>
+<text x="1708" y="870" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Cache + playback</text>
+<text x="1708" y="904" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">The MP3 is cached locally under</text>
+<text x="1708" y="928" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">reports/audio and reused on replay.</text>
+<line x1="538" y1="869" x2="638" y2="869" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="638.0,869.0 625.6,875.5 625.6,862.5" fill="#F45B2A"/>
+<line x1="1058" y1="869" x2="1158" y2="869" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="1158.0,869.0 1145.6,875.5 1145.6,862.5" fill="#F45B2A"/>
+<line x1="1578" y1="869" x2="1678" y2="869" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="1678.0,869.0 1665.6,875.5 1665.6,862.5" fill="#F45B2A"/>
+<rect x="68" y="1060" width="2144" height="590" rx="24" fill="#FFFCF7" stroke="#25211F" stroke-width="3"/>
+<rect x="100" y="1084" width="64" height="46" rx="14" fill="#E8F78B" stroke="#25211F" stroke-width="2"/>
+<text x="113" y="1114" font-family="Consolas, monospace" font-size="24" font-weight="700" fill="#25211F">03</text>
+<text x="184" y="1114" font-family="Segoe UI, sans-serif" font-size="34" font-weight="700" fill="#25211F">Voice Mentor</text>
+<text x="184" y="1143" font-family="Segoe UI, sans-serif" font-size="20" font-weight="400" fill="#786E63">Text and voice questions share the same source-grounded chat; only spoken input needs transcription.</text>
+<rect x="82" y="1195" width="300" height="210" rx="18" fill="#EEE8FF" stroke="#25211F" stroke-width="2"/>
+<rect x="99" y="1210" width="82" height="28" rx="10" fill="#EEE8FF" stroke="#25211F" stroke-width="1"/>
+<text x="111" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">BROWSER</text>
+<text x="100" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Ask a question</text>
+<text x="100" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Type a question or record it in</text>
+<text x="100" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Voice Mentor.</text>
+<rect x="445" y="1195" width="300" height="210" rx="18" fill="#FFF0E5" stroke="#25211F" stroke-width="2"/>
+<rect x="462" y="1210" width="106" height="28" rx="10" fill="#FFF0E5" stroke="#25211F" stroke-width="1"/>
+<text x="474" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">VOICE ONLY</text>
+<text x="463" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Transcribe voice</text>
+<text x="463" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">ElevenLabs Scribe turns a</text>
+<text x="463" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">recording into text. Typed</text>
+<text x="463" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">questions skip this step.</text>
+<rect x="808" y="1195" width="300" height="210" rx="18" fill="#FFF0E5" stroke="#25211F" stroke-width="2"/>
+<rect x="825" y="1210" width="82" height="28" rx="10" fill="#FFF0E5" stroke="#25211F" stroke-width="1"/>
+<text x="837" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">BACKEND</text>
+<text x="826" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Retrieve project</text>
+<text x="826" y="1304" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">sources</text>
+<text x="826" y="1337" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">The backend selects relevant</text>
+<text x="826" y="1360" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">passages from the DEV post and</text>
+<text x="826" y="1383" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">verified README.</text>
+<rect x="1171" y="1195" width="300" height="210" rx="18" fill="#E8F78B" stroke="#25211F" stroke-width="2"/>
+<rect x="1188" y="1210" width="90" height="28" rx="10" fill="#E8F78B" stroke="#25211F" stroke-width="1"/>
+<text x="1200" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">LOCAL AI</text>
+<text x="1189" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Generate an answer</text>
+<text x="1189" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Gemma answers in natural</text>
+<text x="1189" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">language using those passages</text>
+<text x="1189" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">and returns evidence quotes.</text>
+<rect x="1534" y="1195" width="300" height="210" rx="18" fill="#DDF3E2" stroke="#25211F" stroke-width="2"/>
+<rect x="1551" y="1210" width="106" height="28" rx="10" fill="#DDF3E2" stroke="#25211F" stroke-width="1"/>
+<text x="1563" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">VALIDATION</text>
+<text x="1552" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Check the evidence</text>
+<text x="1552" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">The backend checks that each</text>
+<text x="1552" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">quote appears in its cited source</text>
+<text x="1552" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">section.</text>
+<rect x="1897" y="1195" width="300" height="210" rx="18" fill="#EEE8FF" stroke="#25211F" stroke-width="2"/>
+<rect x="1914" y="1210" width="82" height="28" rx="10" fill="#EEE8FF" stroke="#25211F" stroke-width="1"/>
+<text x="1926" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">BROWSER</text>
+<text x="1915" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Show the reply</text>
+<text x="1915" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Voice Mentor displays the</text>
+<text x="1915" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">answer and source references.</text>
+<text x="1915" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Unsupported questions get an</text>
+<text x="1915" y="1377" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">uncertainty response.</text>
+<line x1="389" y1="1300" x2="434" y2="1300" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="434.0,1300.0 421.6,1306.5 421.6,1293.5" fill="#F45B2A"/>
+<line x1="752" y1="1300" x2="797" y2="1300" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="797.0,1300.0 784.6,1306.5 784.6,1293.5" fill="#F45B2A"/>
+<line x1="1115" y1="1300" x2="1160" y2="1300" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="1160.0,1300.0 1147.6,1306.5 1147.6,1293.5" fill="#F45B2A"/>
+<line x1="1478" y1="1300" x2="1523" y2="1300" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="1523.0,1300.0 1510.6,1306.5 1510.6,1293.5" fill="#F45B2A"/>
+<line x1="1841" y1="1300" x2="1886" y2="1300" stroke="#F45B2A" stroke-width="4"/>
+<polygon points="1886.0,1300.0 1873.6,1306.5 1873.6,1293.5" fill="#F45B2A"/>
+<line x1="232" y1="1419" x2="958" y2="1419" stroke="#786E63" stroke-width="3" stroke-dasharray="10 9"/>
+<polygon points="958.0,1419.0 945.6,1425.5 945.6,1412.5" fill="#786E63"/>
+<text x="437" y="1440" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700" fill="#786E63">Typed questions go straight to chat</text>
+<text x="437" y="1440" font-family="Segoe UI, sans-serif" font-size="17" font-weight="700" fill="#786E63">Typed questions go straight to chat</text>
+<rect x="126" y="1492" width="2048" height="89" rx="18" fill="#FFF0E5" stroke="#25211F" stroke-width="2"/>
+<text x="153" y="1526" font-family="Consolas, monospace" font-size="16" font-weight="700" fill="#F45B2A">OPTIONAL SPOKEN REPLY</text>
+<text x="452" y="1530" font-family="Segoe UI, sans-serif" font-size="23" font-weight="700" fill="#25211F">Validated answer → ElevenLabs TTS → browser playback</text>
+<text x="452" y="1560" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#786E63">A new question stops the current speech. Chat answer speech is generated on demand.</text>
+<text x="153" y="1526" font-family="Consolas, monospace" font-size="16" font-weight="700" fill="#F45B2A">OPTIONAL SPOKEN REPLY</text>
+<text x="452" y="1529" font-family="Segoe UI, sans-serif" font-size="23" font-weight="700" fill="#25211F">Validated answer → ElevenLabs TTS → browser playback</text>
+<text x="452" y="1560" font-family="Segoe UI, sans-serif" font-size="18" fill="#786E63">A new question stops the current speech. Chat answer speech is generated on demand.</text>
+<line x1="84" y1="1690" x2="2215" y2="1690" stroke="#D9CFC3" stroke-width="2"/>
+<text x="86" y="1727" font-family="Consolas, monospace" font-size="16" font-weight="700" fill="#F45B2A">LOCAL</text>
+<text x="164" y="1726" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Gemma inference · digest JSON · cached intro MP3s</text>
+<text x="1068" y="1727" font-family="Consolas, monospace" font-size="16" font-weight="700" fill="#F45B2A">NETWORK</text>
+<text x="1170" y="1726" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">DEV.to + GitHub source fetches · ElevenLabs speech</text>
+<text x="86" y="1727" font-family="Consolas, monospace" font-size="16" font-weight="700" fill="#F45B2A">LOCAL</text>
+<text x="164" y="1727" font-family="Segoe UI, sans-serif" font-size="18" fill="#25211F">Gemma inference · digest JSON · cached intro MP3s</text>
+<text x="1068" y="1727" font-family="Consolas, monospace" font-size="16" font-weight="700" fill="#F45B2A">NETWORK</text>
+<text x="1170" y="1727" font-family="Segoe UI, sans-serif" font-size="18" fill="#25211F">DEV.to + GitHub source fetches · ElevenLabs speech</text>
+</svg>

@@ -19,12 +19,16 @@ const projectA = {
   ],
 };
 
-function serviceWith({ project = projectA, answer, resolve, onPrompt } = {}) {
+function serviceWith({ project = projectA, answer, recoveryAnswer = '{"claims":[]}', resolve, onPrompt, onRecoveryPrompt } = {}) {
   return createChatService({
     resolveProjectSources: resolve || (async (id) => id === project.projectId ? project : null),
     generateAnswer: async (prompt) => {
       onPrompt?.(prompt);
       return typeof answer === "function" ? answer(prompt) : answer;
+    },
+    generateRecoveryAnswer: async (prompt) => {
+      onRecoveryPrompt?.(prompt);
+      return typeof recoveryAnswer === "function" ? recoveryAnswer(prompt) : recoveryAnswer;
     },
   });
 }
@@ -108,9 +112,40 @@ test("does not admit an invalid source ID and falls back to matching verified ev
     evidence: [{ sourceId: "repo-9", heading: "Other project", quote: "This is a sufficiently long quote." }],
   }] }) });
   const result = await service.ask({ projectId: projectAUrl, question: "Does it use SQLite?" });
-  assert.match(result.answer, /relevant detail/i);
+  assert.match(result.answer, /In “Project A”:/i);
   assert.match(result.answer, /SQLite/);
   assert.deepEqual(result.citations, []);
+});
+
+test("retries an unanswered simple workflow question in plain language before using a source excerpt", async () => {
+  const project = {
+    ...projectA,
+    title: "StitchProof",
+    markdown: "# Workflows\nStitchProof uses two workflows: a manual eval workflow (synthetic sets); it runs approaches C and D on Tinker with a hard spending cap of $3 per run, writes the results table into the job summary and uploads raw results as artifacts.",
+    repositories: [],
+  };
+  let recoveryPrompt = "";
+  const service = serviceWith({
+    project,
+    answer: '{"claims":[]}',
+    recoveryAnswer: JSON.stringify({ claims: [{
+      text: "It has a manual evaluation run that compares two approaches within a $3 budget, then saves a summary and raw results.",
+      evidence: [{ sourceId: "dev", heading: "Workflows", quote: "it runs approaches C and D on Tinker with a hard spending cap of $3 per run, writes the results table into the job summary and uploads raw results as artifacts." }],
+    }] }),
+    onRecoveryPrompt: (prompt) => { recoveryPrompt = prompt; },
+  });
+
+  const result = await service.ask({
+    projectId: projectAUrl,
+    question: "Can you explain the workflow simply?",
+    includeSources: true,
+  });
+
+  assert.match(recoveryPrompt, /plain, conversational language/i);
+  assert.match(recoveryPrompt, /Can you explain the workflow simply\?/);
+  assert.match(result.answer, /manual evaluation run.*two approaches/i);
+  assert.doesNotMatch(result.answer, /couldn't put that together|relevant detail/i);
+  assert.equal(result.citations[0].heading, "Workflows");
 });
 
 test("rejects fabricated section headings", async () => {

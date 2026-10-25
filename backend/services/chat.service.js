@@ -210,7 +210,9 @@ function createEvidenceExcerptFallback(sources, question) {
   const selected = candidates.slice(0, 2);
   if (!selected.length) return null;
 
-  const answer = `The documentation mentions: ${selected
+  const first = selected[0];
+  const lead = first.heading ? `In “${first.heading}”: ` : "The submission says: ";
+  const answer = `${lead}${selected
     .map((item) => cleanOverviewText(item.quote))
     .join(" ")}`;
   return {
@@ -223,6 +225,20 @@ function createEvidenceExcerptFallback(sources, question) {
       quote: item.quote,
     })),
   };
+}
+
+function buildRecoveryPrompt(project, sources, question, responseLanguage) {
+  return [
+    "Answer the user's question directly in plain, conversational language.",
+    "Explain technical wording simply instead of copying a dense source sentence.",
+    "Use only the supplied project sources. If they do not answer the question, return an empty claims array.",
+    "For every factual claim, include one short exact quote copied from the source that supports it.",
+    'Return strict JSON only: {"claims":[{"text":"direct answer in one or two sentences","evidence":[{"sourceId":"dev","heading":"exact heading or null","quote":"exact source text"}]}]}',
+    responseLanguage ? `Write the answer in ${responseLanguage}; leave evidence quotes unchanged.` : "",
+    `PROJECT: ${project.title}`,
+    `QUESTION: ${question}`,
+    `SOURCES: ${JSON.stringify(sources)}`,
+  ].join("\n");
 }
 
 function createOverviewEvidenceFallback(sources) {
@@ -489,6 +505,7 @@ function parseClaims(raw, sources) {
 function createChatService({
   resolveProjectSources = digestService.getChatProjectSources,
   generateAnswer = ollamaService.generateChatAnswer,
+  generateRecoveryAnswer = ollamaService.generateChatRecoveryAnswer,
 } = {}) {
   const sessions = new Map();
 
@@ -623,12 +640,34 @@ function createChatService({
     }
     let result = parseClaims(raw, relevantSources);
     if (result.answer === UNKNOWN_ANSWER) {
-      const excerpt = interpretation.overview
+      const recoveryEvidence = interpretation.overview
         ? createOverviewEvidenceFallback(sources)
         : createEvidenceExcerptFallback(relevantSources, question.trim());
-      result = excerpt
-        ? { ...excerpt, answer: `I couldn't put that together clearly, but I did find this relevant detail: ${excerpt.answer.replace(/^The documentation mentions:\s*/i, "")}` }
-        : { answer: "I can't find that in this project's sources yet. Want to ask about something the submission or README does describe?", citations: [] };
+
+      // Gemma can occasionally return no usable claim for a straightforward
+      // question. Give it one concise, plain-language retry against the same
+      // selected sources before resorting to a raw excerpt.
+      if (recoveryEvidence) {
+        try {
+          const recoveryRaw = await generateRecoveryAnswer(buildRecoveryPrompt(
+            project,
+            relevantSources,
+            interpretation.normalized,
+            session.responseLanguage,
+          ));
+          const recovered = parseClaims(recoveryRaw, relevantSources);
+          if (recovered.answer !== UNKNOWN_ANSWER) result = recovered;
+        } catch {
+          // Keep the evidence-based fallback available if the short retry fails.
+        }
+      }
+
+      if (result.answer === UNKNOWN_ANSWER) {
+        result = recoveryEvidence || {
+          answer: "I can't find that in this project's sources yet. Want to ask about something the submission or README does describe?",
+          citations: [],
+        };
+      }
     }
     session.lastCitations = result.citations;
     session.history.push(
