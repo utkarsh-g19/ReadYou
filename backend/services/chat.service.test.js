@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createChatService, UNKNOWN_ANSWER, buildSources, selectRelevantSources } = require("./chat.service");
+const { createChatService, UNKNOWN_ANSWER, OUT_OF_SCOPE_ANSWER, buildSources, selectRelevantSources } = require("./chat.service");
 const { validateChatPayload } = require("../controllers/chat.controller");
 
 const projectAUrl = "https://dev.to/alice/project-a-123";
@@ -38,6 +38,51 @@ test("returns the documented uncertainty when the source set has no answer", asy
   const result = await service.ask({ projectId: projectAUrl, question: "Who funded it?" });
   assert.match(result.answer, /can't find|couldn't put that together/i);
   assert.deepEqual(result.citations, []);
+});
+
+test("lets the model recognize a casually formatted project question semantically", async () => {
+  let prompt = "";
+  const service = serviceWith({
+    onPrompt: (value) => { prompt = value; },
+    answer: JSON.stringify({ questionAssessment: { projectRelated: true }, claims: [{
+      text: "It is a pocket field notebook for hikers, and it can save notes offline.",
+      evidence: [{ sourceId: "dev", heading: "Purpose", quote: "A pocket field notebook for hikers." }],
+    }] }),
+  });
+  const result = await service.ask({ projectId: projectAUrl, question: "what is this project about???" });
+  assert.match(prompt, /semantically, not by exact keywords, punctuation, spelling/i);
+  assert.match(result.answer, /pocket field notebook/i);
+  assert.deepEqual(result.citations, []);
+});
+
+test("uses the model's semantic scope decision for unrelated questions without a recovery guess", async () => {
+  let recoveryCalls = 0;
+  const service = createChatService({
+    resolveProjectSources: async () => projectA,
+    generateAnswer: async () => JSON.stringify({ questionAssessment: { projectRelated: false }, claims: [] }),
+    generateRecoveryAnswer: async () => { recoveryCalls += 1; return '{"claims":[]}'; },
+  });
+  const result = await service.ask({ projectId: projectAUrl, question: "What's the weather in Delhi?" });
+  assert.equal(result.answer, OUT_OF_SCOPE_ANSWER);
+  assert.deepEqual(result.citations, []);
+  assert.equal(recoveryCalls, 0);
+});
+
+test("keeps a related but undocumented question distinct from an unrelated question", async () => {
+  const service = serviceWith({ answer: JSON.stringify({ questionAssessment: { projectRelated: true }, claims: [] }) });
+  const result = await service.ask({ projectId: projectAUrl, question: "Who funded this project?" });
+  assert.notEqual(result.answer, OUT_OF_SCOPE_ANSWER);
+  assert.match(result.answer, /can't find/i);
+  assert.deepEqual(result.citations, []);
+});
+
+test("fails closed when the model returns an invalid scope assessment", async () => {
+  const service = serviceWith({ answer: JSON.stringify({ questionAssessment: { projectRelated: "maybe" }, claims: [{
+    text: "Unsupported.",
+    evidence: [{ sourceId: "dev", heading: "Purpose", quote: "A pocket field notebook for hikers." }],
+  }] }) });
+  const result = await service.ask({ projectId: projectAUrl, question: "what is this project about???" });
+  assert.equal(result.answer, UNKNOWN_ANSWER);
 });
 
 test("uses the relevant cached README and returns its original repository URL", async () => {
