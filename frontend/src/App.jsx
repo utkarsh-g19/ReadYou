@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 function getChallengeName(title = "") {
   return title
@@ -6,49 +7,182 @@ function getChallengeName(title = "") {
     .replace(/\s+winners!?$/i, "");
 }
 
-function FormattedSummary({ text }) {
-  const knownHeadings = new Set([
-    "The Idea",
-    "Problem & Solution",
-    "Challenges & Solutions",
-    "Tech Stack",
-    "Workflow",
-    "Limitations",
-  ]);
+const SUMMARY_HEADINGS = [
+  "The Hook",
+  "The Idea",
+  "Problem & Solution",
+  "The Clever Bit",
+  "Challenges & Solutions",
+  "Under the Hood",
+  "Tech Stack",
+  "Workflow",
+  "Why It Matters",
+  "Limitations",
+];
 
+function normalizeHeading(value = "") {
+  const normalized = value
+    .replace(/[*_`]/g, "")
+    .replace(/[:：]\s*$/, "")
+    .trim()
+    .toLowerCase();
+
+  return (
+    SUMMARY_HEADINGS.find((heading) => heading.toLowerCase() === normalized) ||
+    null
+  );
+}
+
+function parseSummarySections(text) {
   const sections = [];
   let currentSection = null;
+  const lines = String(text || "").split(/\r?\n/);
 
-  for (const line of String(text || "").split(/\r?\n/)) {
-    const match = line.match(/^\s*#{1,3}\s+(.+?)\s*$/);
-    const heading = match?.[1]?.trim();
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
 
-    if (heading && knownHeadings.has(heading)) {
+    const headingMatch = line.match(/^#{1,4}\s+(.+?)\s*#*$/);
+    const heading = headingMatch ? normalizeHeading(headingMatch[1]) : null;
+
+    if (heading) {
       currentSection = { title: heading, lines: [] };
       sections.push(currentSection);
-    } else if (currentSection && line.trim()) {
-      currentSection.lines.push(line.trim());
-    } else if (!currentSection && line.trim()) {
-      currentSection = {
-        title: "Project briefing",
-        lines: [line.trim()],
-      };
+      continue;
+    }
+
+    // Keep unheaded text visible rather than silently dropping it.
+    if (!currentSection) {
+      currentSection = { title: "Project briefing", lines: [] };
       sections.push(currentSection);
     }
+
+    currentSection.lines.push(line.replace(/^[-*]\s+/, ""));
   }
 
-  if (sections.length === 0) {
-    return <p>{text || "No summary available."}</p>;
-  }
+  return sections.map((section) => ({
+    ...section,
+    content: section.lines.join(" ").replace(/\s+/g, " ").trim(),
+  }));
+}
+
+function FormattedSummary({ text }) {
+  const [engineeringOpen, setEngineeringOpen] = useState(false);
+  const sections = parseSummarySections(text);
+  const hook = sections.find((section) => section.title === "The Hook");
+  const idea = sections.find((section) => section.title === "The Idea");
+  const quickTake = idea || sections.find((section) => section !== hook);
+  const technicalSections = sections.filter(
+    (section) => section !== hook && section !== quickTake,
+  );
+
+  useEffect(() => {
+    if (!engineeringOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setEngineeringOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [engineeringOpen]);
+
+  if (!sections.length) return <p>No summary available yet.</p>;
 
   return (
     <div className="formatted-summary">
-      {sections.map((section, index) => (
-        <section className="summary-section" key={`${section.title}-${index}`}>
-          <h5>{section.title}</h5>
-          <p>{section.lines.join(" ").replace(/\s+/g, " ")}</p>
+      {hook?.content && (
+        <section className="project-hook" aria-label="Project hook">
+          <span className="hook-label">THE HOOK</span>
+          <p>{hook.content}</p>
         </section>
-      ))}
+      )}
+
+      {quickTake?.content && (
+        <section className="summary-preview">
+          <span className="summary-preview-label">
+            {quickTake.title === "The Idea" ? "THE BIG IDEA" : "QUICK TAKE"}
+          </span>
+          <p>{quickTake.content}</p>
+        </section>
+      )}
+
+      {technicalSections.length > 0 && (
+        <>
+          <button
+            type="button"
+            className="summary-details-trigger"
+            onClick={() => setEngineeringOpen(true)}
+            aria-haspopup="dialog"
+          >
+            <span>Explore the engineering</span>
+            <span className="summary-details-hint">
+              {technicalSections.length} sections{" "}
+              <span aria-hidden="true">＋</span>
+            </span>
+          </button>
+
+          {engineeringOpen &&
+            createPortal(
+              <div
+                className="engineering-modal-backdrop"
+                onMouseDown={(event) => {
+                  if (event.target === event.currentTarget)
+                    setEngineeringOpen(false);
+                }}
+              >
+                <section
+                  className="engineering-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="engineering-modal-title"
+                >
+                  <header className="engineering-modal-header">
+                    <div>
+                      <span className="engineering-modal-kicker">
+                        READYOU DEEP DIVE
+                      </span>
+                      <h3 id="engineering-modal-title">
+                        Explore the engineering
+                      </h3>
+                      <p>
+                        {technicalSections.length} sections · how it works, what
+                        it uses, and what the team learned
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="engineering-modal-close"
+                      onClick={() => setEngineeringOpen(false)}
+                      aria-label="Close engineering details"
+                    >
+                      ×
+                    </button>
+                  </header>
+                  <div className="engineering-modal-content">
+                    {technicalSections.map((section, index) => (
+                      <section
+                        className={`summary-section${section.title === "Tech Stack" ? " tech-stack-section" : ""}`}
+                        key={`${section.title}-${index}`}
+                      >
+                        <h5>{section.title}</h5>
+                        <p>{section.content}</p>
+                      </section>
+                    ))}
+                  </div>
+                </section>
+              </div>,
+              document.body,
+            )}
+        </>
+      )}
+
+      {!hook && !quickTake && !technicalSections.length && (
+        <p>No readable summary content is available yet.</p>
+      )}
     </div>
   );
 }

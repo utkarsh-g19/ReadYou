@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap");
 
 :root {
   font-family: "Manrope", sans-serif;
@@ -1177,5 +1177,471 @@ button:disabled {
 
   .hacktoberfest-card {
     max-width: none;
+  }
+}
+
+/* ReadYou editorial summary refresh */
+.project-hook {
+  position: relative;
+  margin: 0 0 13px;
+  padding: 17px 17px 16px;
+  overflow: hidden;
+  border: 1.5px solid var(--ink);
+  border-radius: 13px;
+  background: #fff0e5;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.project-hook::after {
+  content: "✳";
+  position: absolute;
+  top: -17px;
+  right: 8px;
+  color: rgba(255, 96, 40, 0.18);
+  font-size: 5.8rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.hook-label,
+.summary-preview-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #a34421;
+  font-family: "DM Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.project-hook p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: 58ch;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.04rem;
+  font-weight: 600;
+  line-height: 1.65;
+  letter-spacing: -0.02em;
+}
+
+.summary-preview {
+  margin: 0 0 13px;
+  padding: 15px 16px;
+  border: 1px solid rgba(36, 33, 31, 0.13);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.summary-preview-label {
+  color: #6c5bb2;
+}
+
+.summary-preview p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+.summary-details {
+  margin-top: 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.8);
+  overflow: hidden;
+}
+
+.summary-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 15px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 800;
+}
+
+.summary-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary-details > summary::after {
+  content: "＋";
+  display: grid;
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: var(--lime);
+  font-size: 1rem;
+  transition: transform 160ms ease;
+}
+
+.summary-details[open] > summary::after {
+  content: "−";
+  transform: rotate(180deg);
+}
+
+.summary-details > summary:hover {
+  background: rgba(229, 248, 135, 0.3);
+}
+
+.summary-details-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  color: var(--muted);
+  font-family: "DM Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.summary-details-hint span {
+  display: none;
+}
+
+.summary-details-content {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 13px;
+}
+
+.summary-details-content .summary-section {
+  padding: 13px 14px;
+  background: #fffdf8;
+}
+
+.summary-details-content .summary-section h5 {
+  font-size: 0.9rem;
+}
+
+.summary-details-content .summary-section p {
+  font-size: 0.83rem;
+  line-height: 1.8;
+}
+
+.summary-details-content .tech-stack-section {
+  border-left-color: #779a27;
+  background: #f4f9d9;
+}
+
+.summary-details > summary:focus-visible {
+  outline: 3px solid #7764da;
+  outline-offset: -4px;
+}
+
+@media (max-width: 760px) {
+  .project-hook {
+    padding: 15px;
+  }
+
+  .project-hook p {
+    font-size: 0.98rem;
+  }
+
+  .summary-details > summary {
+    align-items: flex-start;
+    padding: 13px;
+  }
+
+  .summary-details-hint {
+    font-size: 0.6rem;
+  }
+
+  .summary-details-content {
+    padding: 0 9px 10px;
+  }
+}
+
+/* Centered engineering modal, with a softly blurred page behind it. */
+.summary-details-trigger {
+  width: 100%;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1.5px solid var(--ink, #292522);
+  border-radius: 16px;
+  background: rgba(255, 251, 246, 0.92);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+.summary-details-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 var(--ink, #292522);
+  background: #fffdf9;
+}
+.summary-details-trigger:focus-visible,
+.engineering-modal-close:focus-visible {
+  outline: 3px solid #8170ee;
+  outline-offset: 3px;
+}
+.engineering-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(14px, 3vw, 36px);
+  background: rgba(32, 25, 22, 0.48);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  animation: engineering-backdrop-in 160ms ease-out;
+}
+.engineering-modal {
+  width: min(760px, 100%);
+  max-height: min(84vh, 900px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 2px solid var(--ink, #292522);
+  border-radius: 22px;
+  background: #fffaf3;
+  color: #292522;
+  box-shadow: 10px 10px 0 rgba(35, 28, 24, 0.24);
+  animation: engineering-card-in 180ms ease-out;
+}
+.engineering-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(20px, 4vw, 30px);
+  border-bottom: 1px solid rgba(41, 37, 34, 0.16);
+  background: #fff0e4;
+}
+.engineering-modal-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #c84b25;
+  font-family: "DM Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+.engineering-modal-header h3 {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  line-height: 1.2;
+}
+.engineering-modal-header p {
+  margin: 9px 0 0;
+  color: #625852;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.engineering-modal-close {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #292522;
+  border-radius: 12px;
+  background: #e9f78c;
+  color: #292522;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.engineering-modal-content {
+  overflow-y: auto;
+  padding: clamp(16px, 3vw, 26px);
+  overscroll-behavior: contain;
+}
+.engineering-modal-content .summary-section {
+  margin: 0 0 14px;
+}
+.engineering-modal-content .summary-section:last-child {
+  margin-bottom: 0;
+}
+@keyframes engineering-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes engineering-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (max-width: 600px) {
+  .engineering-modal-backdrop {
+    padding: 12px;
+  }
+  .engineering-modal {
+    max-height: 90dvh;
+    border-radius: 17px;
+    box-shadow: 5px 5px 0 rgba(35, 28, 24, 0.24);
+  }
+  .engineering-modal-header {
+    padding: 19px;
+  }
+  .engineering-modal-content {
+    padding: 14px;
+  }
+  .summary-details-trigger {
+    min-height: 64px;
+    padding: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .engineering-modal-backdrop,
+  .engineering-modal {
+    animation: none;
+  }
+  .summary-details-trigger {
+    transition: none;
+  }
+}
+
+/* ReadYou typography refresh */
+
+/* Body: warmer, clearer, more substantial */
+:root {
+  --font-body: "DM Sans", sans-serif;
+  --font-display: "Bricolage Grotesque", sans-serif;
+}
+
+body,
+button,
+select,
+input,
+textarea {
+  font-family: var(--font-body);
+}
+
+/* Headings: distinctive editorial personality */
+h1,
+h2,
+h3,
+h4,
+h5,
+.logo,
+.engineering-modal-header h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+/* Give the main headline a more expressive display style */
+.hero h1 {
+  font-size: clamp(3.2rem, 5.3vw, 5.8rem);
+  line-height: 0.99;
+  letter-spacing: -0.065em;
+  font-weight: 800;
+}
+
+/* Project titles should stand out from their descriptions */
+.project-card h4 {
+  font-size: clamp(1.35rem, 2vw, 1.65rem);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
+/* More readable body text */
+.description {
+  font-size: 0.98rem;
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+}
+
+/* Make the modal feel like an editorial feature */
+.engineering-modal-header h3 {
+  font-size: clamp(1.65rem, 3.2vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+
+.engineering-modal-header p {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.summary-section {
+  padding: 18px 20px;
+}
+
+.summary-section h5 {
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+
+.summary-section p {
+  color: #403933;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.8;
+  letter-spacing: 0;
+}
+
+/* Keep the small technical labels deliberately different */
+.eyebrow,
+.category,
+.event-label,
+.engineering-modal-kicker {
+  font-family: "DM Mono", monospace;
+}
+
+/* Clearer hierarchy across the sidebar and digest */
+.digest-heading h2,
+.challenge-heading h3,
+.week-panel h2,
+.sidebar-note h3 {
+  font-weight: 800;
+}
+
+/* A little more weight on interactive controls */
+.tab,
+.header-link,
+.source-links a,
+.project-audio-button,
+.project-audio-stop {
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .hero h1 {
+    font-size: clamp(2.8rem, 11vw, 4.3rem);
+  }
+
+  .summary-section {
+    padding: 15px 16px;
+  }
+
+  .summary-section p {
+    font-size: 0.96rem;
+    line-height: 1.75;
   }
 }

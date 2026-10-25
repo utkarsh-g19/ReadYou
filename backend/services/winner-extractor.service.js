@@ -5,21 +5,31 @@ function extractWinners(markdown) {
   let currentCategory = null;
 
   for (const line of lines) {
-    const sectionHeading = line.match(/^##\s+(.+)$/);
-    const categoryHeading = line.match(/^###\s+(.+)$/);
+    const heading = line.match(/^(#{2,6})\s+(.+)$/);
     const embed = line.match(
       /^\s*\{% embed (https:\/\/dev\.to\/[^%\s]+) %\}\s*$/,
     );
 
-    // Leaving a major section means the previous category ends.
-    if (sectionHeading) {
-      currentCategory = null;
-      continue;
-    }
+    if (heading) {
+      const level = heading[1].length;
+      const title = heading[2].trim();
 
-    // Each third-level heading identifies a winner category.
-    if (categoryHeading) {
-      currentCategory = categoryHeading[1].trim();
+      if (level === 2) {
+        // Major sections, including embedded article titles, end a category.
+        currentCategory = null;
+      } else if (level === 3) {
+        // Some winner posts group awards under headings such as
+        // "Featured Category Winners"; those are not individual awards.
+        currentCategory = /^(featured|partner)\s+category\s+winners?$/i.test(
+          title,
+        )
+          ? null
+          : title;
+      } else {
+        // Nested headings contain the actual award names in grouped sections.
+        currentCategory = title;
+      }
+
       continue;
     }
 

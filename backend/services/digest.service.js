@@ -6,6 +6,7 @@ const devApiService = require("./dev-api.service");
 const winnerExtractor = require("./winner-extractor.service");
 const projectResearchService = require("./project-research.service");
 const ollamaService = require("./ollama.service");
+const elevenLabsService = require("./elevenlabs.service");
 
 const REPORTS_DIR = path.resolve(__dirname, "../../reports");
 const STATE_FILE = path.join(REPORTS_DIR, "readyou-state.json");
@@ -14,6 +15,77 @@ const LATEST_DIGEST_FILE = path.join(REPORTS_DIR, "latest-digest.json");
 const jobs = new Map();
 let activeJobId = null;
 
+function buildAudioIntro(project = {}, summary = "") {
+  const sections = new Map();
+  let currentHeading = null;
+
+  for (const rawLine of String(summary).split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    const headingMatch = line.match(/^#{1,6}\s+(.+?)\s*#*\s*$/);
+
+    if (headingMatch) {
+      currentHeading = headingMatch[1].replace(/[*_`]/g, "").trim();
+
+      if (!sections.has(currentHeading)) {
+        sections.set(currentHeading, []);
+      }
+
+      continue;
+    }
+
+    if (currentHeading) {
+      sections.get(currentHeading).push(line);
+    }
+  }
+
+  let narration = [
+    ...(sections.get("The Hook") || []),
+    ...(sections.get("The Idea") || []),
+  ].join(" ");
+
+  if (!narration.trim()) {
+    narration = project.description || summary;
+  }
+
+  narration = String(narration)
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/^\s*#{1,6}\s*/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/[*_`~>#]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!narration) return "";
+
+  // Keep the spoken introduction short and avoid cutting it mid-sentence.
+  const sentences = narration.match(/[^.!?]+(?:[.!?]+|$)/g) || [narration];
+
+  const selected = [];
+  let wordCount = 0;
+
+  for (const sentence of sentences) {
+    const cleaned = sentence.trim();
+    if (!cleaned) continue;
+
+    const count = cleaned.split(/\s+/).length;
+
+    if (selected.length > 0 && wordCount + count > 100) break;
+
+    selected.push(cleaned);
+    wordCount += count;
+
+    if (wordCount >= 75) break;
+  }
+
+  const title = String(project.title || "").trim();
+  const opening = title ? `You're listening to ReadYou. This is ${title}.` : "";
+
+  return [opening, selected.join(" ")].filter(Boolean).join(" ");
+}
 function isWinnerAnnouncement(article) {
   const title = String(article?.title || "").trim();
 
@@ -159,6 +231,8 @@ function createDigest(announcements) {
 }
 
 async function runBuild(job) {
+  let shouldBuildAudioIntros = false;
+
   job.status = "running";
   job.stage = "discovering";
   job.message = "Discovering official winner announcements.";
@@ -183,6 +257,7 @@ async function runBuild(job) {
       const digest = createDigest(state.processedAnnouncements);
 
       await writeJson(LATEST_DIGEST_FILE, digest);
+      shouldBuildAudioIntros = true;
 
       job.status = "completed";
       job.stage = "finished";
@@ -326,6 +401,7 @@ async function runBuild(job) {
     const digest = createDigest(state.processedAnnouncements);
 
     await writeJson(LATEST_DIGEST_FILE, digest);
+    shouldBuildAudioIntros = true;
 
     job.status = "completed";
     job.stage = "finished";
@@ -347,6 +423,10 @@ async function runBuild(job) {
 
     if (activeJobId === job.id) {
       activeJobId = null;
+    }
+
+    if (shouldBuildAudioIntros) {
+      void startAudioIntroBuild();
     }
   }
 }
