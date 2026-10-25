@@ -146,9 +146,13 @@ function splitSection(text, maxChars = 900) {
 }
 
 function isOverviewQuestion(question) {
-  const cleanQuestion = question.normalize("NFC");
+  const cleanQuestion = question
+    .normalize("NFC")
+    .replace(/what['’]?s/gi, "what is")
+    .replace(/\s+/g, " ");
   return /\b(?:explain\s+(?:this|that|it|something|the project|this project)|overview(?:\s+of\s+(?:this|the)\s+project)?|describe\s+(?:this|that|it|the project|this project)|what\s+does\s+(?:this|the project|it)\s+do)\b/i.test(cleanQuestion) ||
     /\bwhat\b.*\b(?:project|it|this)\b.*\babout\b/i.test(cleanQuestion) ||
+    /\b(?:explain|describe|tell me)\b.{0,50}\bwhat\b.{0,40}\b(?:project|it|this)\b.{0,40}\b(?:about|do|does)\b/i.test(cleanQuestion) ||
     /^\s*what\s+(?:is\s+)?(?:this|the)\s+project\s*(?:all\s+)?about\s*[?!.]*\s*$/i.test(cleanQuestion) ||
     /^\s*what\s+(?:is\s+)?(?:this|the)\s+project\s*[?!.]*\s*$/i.test(cleanQuestion);
 }
@@ -254,12 +258,28 @@ function createOverviewEvidenceFallback(sources) {
         !/^!?\[.*\]\(https?:\/\//i.test(text),
       ),
   ) || [];
-  const useful = paragraphs.find(({ heading }) =>
+  const overviewParagraphs = paragraphs.filter(({ heading }) =>
     /what i built|overview|about|the idea|project description/i.test(heading || ""),
   );
+  const titleText = sources.find((source) => source.sourceId === "dev-title")?.sections[0]?.text || "";
+  const projectName = titleText.split(/[:—–]/, 1)[0].trim();
+  const escapedName = projectName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const projectNamePattern = escapedName ? new RegExp(`\\b${escapedName}\\b`, "i") : null;
+  const useful = overviewParagraphs.sort((left, right) => {
+    const score = ({ text }) =>
+      (projectNamePattern?.test(text) ? 4 : 0) +
+      (/\b(?:builds|creates|helps|lets|allows|uses|generates|turns|provides|finds|produces)\b/i.test(text) ? 2 : 0) +
+      (text.length >= 100 ? 1 : 0) -
+      (text.includes("?") ? 2 : 0);
+    return score(right) - score(left);
+  })[0];
   if (useful && article) {
-    const quote = useful.text.slice(0, 500);
-    const answer = `It’s ${cleanOverviewText(quote)}`;
+    let quote = useful.text.slice(0, 500);
+    if (useful.text.length > quote.length) {
+      const sentenceEnd = Math.max(quote.lastIndexOf(". "), quote.lastIndexOf("! "), quote.lastIndexOf("? "));
+      if (sentenceEnd >= 120) quote = quote.slice(0, sentenceEnd + 1);
+    }
+    const answer = cleanOverviewText(quote);
     return {
       answer,
       citations: [{ claim: answer, label: article.label, url: article.url, heading: useful.heading, quote }],
@@ -482,9 +502,10 @@ function parseClaims(raw, sources) {
 
   for (const claim of parsed.claims.slice(0, 8)) {
     if (typeof claim?.text !== "string" || !claim.text.trim() || claim.text.length > 800) continue;
-    // These are model-side recovery phrases, not answers. They can otherwise
-    // pass quote validation just because the model appends a real source quote.
-    if (/\b(?:couldn['’]?t put (?:that|it) together|did find this relevant detail|can['’]?t answer (?:that|this) clearly)\b/i.test(claim.text)) continue;
+    // Model deflections are not answers, even when real source text is attached.
+    // Otherwise a quote can make a generic refusal look valid to the evidence checker.
+    if (/^(?:(?:i['’]?m sorry|sorry)[,!.\s]*)?i\s+(?:(?:couldn['’]?t|could not|can['’]?t|cannot|wasn['’]?t able to|am unable to)\s+(?:put|find|answer|understand)|(?:don['’]?t|do not)\s+have enough\s+(?:context|information)|(?:didn['’]?t|did not)\s+find)\b/i.test(claim.text.trim()) ||
+      /\bi did find this relevant detail\b/i.test(claim.text)) continue;
     const evidence = [];
     for (const item of (Array.isArray(claim.evidence) ? claim.evidence : []).slice(0, 3)) {
       const source = sourceMap.get(item?.sourceId);
