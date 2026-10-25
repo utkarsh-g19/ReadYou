@@ -19,6 +19,8 @@ It is built as a local-first app: summaries and chat use a Gemma model served by
 
 The backend checks DEV Team articles for winner announcements on startup and then on a timer. For each announcement, it finds the submissions, reads their DEV article content, and checks linked GitHub repositories. A local Gemma model classifies whether a candidate README documents the submitted project; uncertain candidates are left out. Summaries and chat use the submission and only the selected project documentation.
 
+For project chat, Gemma assesses whether a question is about the selected project from its meaning, then drafts an answer using retrieved source passages in the same model call. The backend verifies that supporting quotes appear in their cited sections. Unrelated questions are redirected, invalid scope assessments fail closed, and the chat avoids presenting unsupported claims when the sources cannot answer.
+
 Processed announcements, summaries, and generated audio are stored under `reports/`. This directory is local application data and is ignored by Git. Chat session history is held in backend memory and expires; it is not stored in the reports cache.
 
 ## Requirements

@@ -45,10 +45,10 @@
 <rect x="1789" y="353" width="122" height="28" rx="10" fill="#EEE8FF" stroke="#25211F" stroke-width="1"/>
 <text x="1801" y="370" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">SOURCES → UI</text>
 <text x="1790" y="418" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Briefing + digest cache</text>
-<text x="1790" y="452" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">Use the DEV article and confidently</text>
-<text x="1790" y="476" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">matched README. Gemma writes the</text>
-<text x="1790" y="500" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">briefing; JSON state is saved under</text>
-<text x="1790" y="524" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">reports/ and shown in the React</text>
+<text x="1790" y="452" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">Use the DEV article plus any</text>
+<text x="1790" y="476" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">confidently matched README. Gemma</text>
+<text x="1790" y="500" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">writes the briefing; JSON state is saved</text>
+<text x="1790" y="524" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">under reports/ and shown in the React</text>
 <text x="1790" y="548" font-family="Segoe UI, sans-serif" font-size="19" font-weight="400" fill="#25211F">digest.</text>
 <line x1="460" y1="462" x2="500" y2="462" stroke="#F45B2A" stroke-width="4"/>
 <polygon points="500.0,462.0 487.6,468.5 487.6,455.5" fill="#F45B2A"/>
@@ -121,10 +121,11 @@
 <rect x="1171" y="1195" width="300" height="210" rx="18" fill="#E8F78B" stroke="#25211F" stroke-width="2"/>
 <rect x="1188" y="1210" width="90" height="28" rx="10" fill="#E8F78B" stroke="#25211F" stroke-width="1"/>
 <text x="1200" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">LOCAL AI</text>
-<text x="1189" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Generate an answer</text>
-<text x="1189" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Gemma answers in natural</text>
-<text x="1189" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">language using those passages</text>
-<text x="1189" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">and returns evidence quotes.</text>
+<text x="1189" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Assess + answer</text>
+<text x="1189" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">In one call, Gemma judges</text>
+<text x="1189" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">project relevance from meaning</text>
+<text x="1189" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">and drafts an answer with</text>
+<text x="1189" y="1377" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">evidence quotes.</text>
 <rect x="1534" y="1195" width="300" height="210" rx="18" fill="#DDF3E2" stroke="#25211F" stroke-width="2"/>
 <rect x="1551" y="1210" width="106" height="28" rx="10" fill="#DDF3E2" stroke="#25211F" stroke-width="1"/>
 <text x="1563" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">VALIDATION</text>
@@ -136,10 +137,10 @@
 <rect x="1914" y="1210" width="82" height="28" rx="10" fill="#EEE8FF" stroke="#25211F" stroke-width="1"/>
 <text x="1926" y="1227" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#25211F">BROWSER</text>
 <text x="1915" y="1275" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#25211F">Show the reply</text>
-<text x="1915" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Voice Mentor displays the</text>
-<text x="1915" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">answer and source references.</text>
-<text x="1915" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Unsupported questions get an</text>
-<text x="1915" y="1377" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">uncertainty response.</text>
+<text x="1915" y="1308" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">Unrelated questions are</text>
+<text x="1915" y="1331" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">redirected; invalid assessments</text>
+<text x="1915" y="1354" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">fail closed. Supported answers</text>
+<text x="1915" y="1377" font-family="Segoe UI, sans-serif" font-size="18" font-weight="400" fill="#25211F">show source references.</text>
 <line x1="389" y1="1300" x2="434" y2="1300" stroke="#F45B2A" stroke-width="4"/>
 <polygon points="434.0,1300.0 421.6,1306.5 421.6,1293.5" fill="#F45B2A"/>
 <line x1="752" y1="1300" x2="797" y2="1300" stroke="#F45B2A" stroke-width="4"/>

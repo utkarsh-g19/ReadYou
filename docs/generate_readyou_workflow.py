@@ -197,9 +197,9 @@ mentor_cards = [
     ("Ask a question", "Type a question or record it in Voice Mentor.", LAVENDER, "BROWSER"),
     ("Transcribe voice", "ElevenLabs Scribe turns a recording into text. Typed questions skip this step.", PEACH, "VOICE ONLY"),
     ("Retrieve project sources", "The backend selects relevant passages from the DEV post and verified README.", PEACH, "BACKEND"),
-    ("Generate an answer", "Gemma answers in natural language using those passages and returns evidence quotes.", LIME, "LOCAL AI"),
+    ("Assess + answer", "In one call, Gemma judges project relevance from meaning and drafts an answer with evidence quotes.", LIME, "LOCAL AI"),
     ("Check the evidence", "The backend checks that each quote appears in its cited source section.", GREEN, "VALIDATION"),
-    ("Show the reply", "Voice Mentor displays the answer and source references. Unsupported questions get an uncertainty response.", LAVENDER, "BROWSER"),
+    ("Show the reply", "Unrelated questions are redirected; invalid assessments fail closed. Supported answers show source references.", LAVENDER, "BROWSER"),
 ]
 for x, item in zip(mentor_xs, mentor_cards):
     card(x, mentor_y, mentor_w, mentor_h, *item, body_size=18)
