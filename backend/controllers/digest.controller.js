@@ -63,6 +63,41 @@ async function startAudioIntroBuild(req, res) {
   }
 }
 
+async function startSummaryRegeneration(req, res) {
+  try {
+    const result = await digestService.startSummaryRegeneration(
+      req.body?.submissionUrls,
+    );
+
+    return res.status(202).json({
+      success: true,
+      alreadyRunning: result.alreadyRunning,
+      message: result.alreadyRunning
+        ? "Another digest job is already running."
+        : "Selected summary regeneration started.",
+      job: result.job,
+    });
+  } catch (error) {
+    if (error.code === "CACHE_ENTRY_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+        submissionUrls: error.submissionUrls,
+      });
+    }
+
+    if (error instanceof TypeError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
+    console.error("Could not start summary regeneration:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Could not start summary regeneration.",
+    });
+  }
+}
+
 function getJob(req, res) {
   const job = digestService.getJob(req.params.jobId);
 
@@ -102,6 +137,7 @@ module.exports = {
   discoverAnnouncements,
   startBuild,
   startAudioIntroBuild,
+  startSummaryRegeneration,
   getJob,
   getLatestDigest,
 };

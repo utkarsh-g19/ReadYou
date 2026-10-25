@@ -1,5 +1,6 @@
 const devApiService = require("./dev-api.service");
 const githubService = require("./github.service");
+const repositoryRelevanceService = require("./repository-relevance.service");
 const cheerio = require("cheerio");
 
 async function getArticleWithCanonicalFallback(username, slug, submissionUrl) {
@@ -97,13 +98,13 @@ async function getSubmissionByUrl(submissionUrl) {
     ),
   ];
 
-  const repositories = [];
+  const candidates = [];
 
   for (const githubUrl of githubLinks.slice(0, 5)) {
     try {
       const repository = await githubService.getRepositoryReadme(githubUrl);
 
-      repositories.push(repository);
+      candidates.push(repository);
     } catch (error) {
       console.error(
         `Could not retrieve README for ${githubUrl}:`,
@@ -112,7 +113,7 @@ async function getSubmissionByUrl(submissionUrl) {
     }
   }
 
-  return {
+  const project = {
     title: article.title,
     url: article.url,
     description: article.description || "",
@@ -120,6 +121,14 @@ async function getSubmissionByUrl(submissionUrl) {
     publishedAt: article.published_at,
     markdown,
     githubLinks,
+  };
+  const repositories = await repositoryRelevanceService.selectRelevantRepositories(
+    project,
+    candidates,
+  );
+
+  return {
+    ...project,
     repositories,
   };
 }

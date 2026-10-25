@@ -191,6 +191,36 @@ function toPublicProject(project) {
   };
 }
 
+function toSourceContext(project) {
+  return {
+    markdown: (project.markdown || "").slice(0, 3500),
+    repositories: (project.repositories || []).map((repository) => ({
+      repositoryUrl: repository.repositoryUrl,
+      readme: (repository.readme || "").slice(0, 4000),
+    })),
+  };
+}
+
+function createRegeneratedCacheEntry(cached, project, summary, processedAt) {
+  const priorSummary = {
+    summary: cached.summary || "",
+    processedAt: cached.processedAt || null,
+    sourceContext: cached.sourceContext || null,
+    audioIntro: cached.audioIntro || null,
+  };
+  const { audioIntro: _audioIntro, audioIntroError: _audioIntroError, ...rest } =
+    cached;
+
+  return {
+    ...rest,
+    project: toPublicProject(project),
+    sourceContext: toSourceContext(project),
+    summary,
+    summaryHistory: [...(cached.summaryHistory || []), priorSummary],
+    processedAt,
+  };
+}
+
 function createDigest(announcements) {
   const sortedAnnouncements = Object.values(announcements).sort((a, b) =>
     String(b.publishedAt || "").localeCompare(String(a.publishedAt || "")),
@@ -343,6 +373,7 @@ async function runBuild(job) {
 
             cached = {
               project: toPublicProject(project),
+              sourceContext: toSourceContext(project),
               summary,
               processedAt: new Date().toISOString(),
             };
@@ -480,6 +511,140 @@ async function getLatestDigest() {
   return readJson(LATEST_DIGEST_FILE, null);
 }
 
+async function runSummaryRegeneration(job, submissionUrls) {
+  job.status = "running";
+  job.stage = "regenerating-summaries";
+  job.message = "Rechecking sources and regenerating selected summaries.";
+  job.startedAt = new Date().toISOString();
+  let regeneratedAny = false;
+
+  try {
+    const state = await loadState();
+
+    for (const submissionUrl of submissionUrls) {
+      job.currentSubmission = submissionUrl;
+
+      try {
+        const cached = state.processedWinners[submissionUrl];
+        if (!cached) throw new Error("No cached winner exists for this URL.");
+
+        const project = await projectResearchService.getSubmissionByUrl(
+          submissionUrl,
+        );
+        const summary = await ollamaService.generateSummary(project);
+        const processedAt = new Date().toISOString();
+
+        state.processedWinners[submissionUrl] = createRegeneratedCacheEntry(
+          cached,
+          project,
+          summary,
+          processedAt,
+        );
+
+        for (const announcement of Object.values(state.processedAnnouncements)) {
+          for (const winner of announcement.winners || []) {
+            if (winner.submissionUrl !== submissionUrl) continue;
+
+            winner.project = toPublicProject(project);
+            winner.summary = summary;
+            delete winner.audioIntro;
+            delete winner.audioIntroError;
+          }
+        }
+
+        regeneratedAny = true;
+        job.successfulWinners++;
+      } catch (error) {
+        job.failedWinners++;
+        console.error(
+          `Summary regeneration failed for ${submissionUrl}:`,
+          error.message,
+        );
+      }
+
+      job.completedWinners++;
+      await writeJson(STATE_FILE, state);
+      await writeJson(
+        LATEST_DIGEST_FILE,
+        createDigest(state.processedAnnouncements),
+      );
+    }
+
+    job.status = "completed";
+    job.stage = "finished";
+    job.message =
+      job.failedWinners > 0
+        ? "Selected summaries regenerated with some failures; failed entries kept their previous summaries."
+        : "Selected summaries regenerated; previous versions were retained in cache history.";
+    job.finishedAt = new Date().toISOString();
+  } catch (error) {
+    job.status = "failed";
+    job.stage = "failed";
+    job.message = "Summary regeneration failed.";
+    job.error = error.message;
+    job.finishedAt = new Date().toISOString();
+  } finally {
+    job.currentSubmission = null;
+    if (activeJobId === job.id) activeJobId = null;
+    if (regeneratedAny) void startAudioIntroBuild();
+  }
+}
+
+async function startSummaryRegeneration(submissionUrls) {
+  if (
+    !Array.isArray(submissionUrls) ||
+    submissionUrls.length === 0 ||
+    submissionUrls.length > 50 ||
+    submissionUrls.some((url) => typeof url !== "string" || !url.trim())
+  ) {
+    throw new TypeError(
+      "Provide between 1 and 50 non-empty cached submission URLs.",
+    );
+  }
+
+  const uniqueUrls = [...new Set(submissionUrls.map((url) => url.trim()))];
+  const state = await loadState();
+  const missingUrls = uniqueUrls.filter((url) => !state.processedWinners[url]);
+  if (missingUrls.length) {
+    const error = new Error("One or more submission URLs have no cached summary.");
+    error.code = "CACHE_ENTRY_NOT_FOUND";
+    error.submissionUrls = missingUrls;
+    throw error;
+  }
+
+  if (activeJobId && jobs.has(activeJobId)) {
+    const activeJob = jobs.get(activeJobId);
+    if (activeJob.status === "running" || activeJob.status === "queued") {
+      return { alreadyRunning: true, job: publicJob(activeJob) };
+    }
+  }
+
+  const job = {
+    id: randomUUID(),
+    status: "queued",
+    stage: "queued",
+    message: "Summary regeneration queued.",
+    createdAt: new Date().toISOString(),
+    startedAt: null,
+    finishedAt: null,
+    announcementsFound: 0,
+    announcementsToProcess: 0,
+    announcementsCompleted: 0,
+    totalWinners: uniqueUrls.length,
+    completedWinners: 0,
+    successfulWinners: 0,
+    failedWinners: 0,
+    currentAnnouncement: null,
+    currentSubmission: null,
+    error: null,
+  };
+
+  jobs.set(job.id, job);
+  activeJobId = job.id;
+  void runSummaryRegeneration(job, uniqueUrls);
+  return { alreadyRunning: false, job: publicJob(job) };
+}
+
 async function runAudioIntroBuild(job) {
   job.status = "running";
   job.stage = "generating-audio-intros";
@@ -545,7 +710,10 @@ async function runAudioIntroBuild(job) {
       job.currentSubmission = task.url;
 
       try {
-        const project = cached.project || task.winner.project;
+        const project = {
+          ...(cached.project || task.winner.project),
+          ...(cached.sourceContext || {}),
+        };
         const summary = cached.summary || task.winner.summary;
 
         if (!project || !summary) {
@@ -692,6 +860,8 @@ module.exports = {
   checkForNewAnnouncements,
   startBuild,
   startAudioIntroBuild,
+  startSummaryRegeneration,
   getJob,
   getLatestDigest,
+  createRegeneratedCacheEntry,
 };
