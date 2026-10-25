@@ -262,6 +262,35 @@ test("rejects Gemma's generic fallbacks even with valid quotes and explains an i
   assert.equal(result.citations[0].heading, "What I Built");
 });
 
+test("overview fallback finds the actual project description after a narrative hook", async () => {
+  const project = {
+    ...projectA,
+    title: "Project JARVIS: The Offline AI Lab Assistant",
+    description: "This is a submission for the Hacktoberfest Weekend Challenge: Build for a Friend...",
+    markdown: [
+      "## What I Built",
+      "Ask a new student where the vernier is, and most will say nothing. They'll wander, give up, and not come back.",
+      "The lab has many tools and components, so finding the right one and tracking loans is difficult.",
+      "Now my junior coordinates the lab, so I built JARVIS: an offline AI assistant you talk to. It points a laser at the tool you need, lights up component boxes, and keeps the lending log.",
+      "It runs entirely on an Arduino UNO Q with 2 GB of RAM: no internet, no cloud account, no API key.",
+    ].join("\n\n"),
+  };
+  const service = serviceWith({
+    project,
+    answer: JSON.stringify({ claims: [{
+      text: "I couldn't put that together clearly, but I did find this relevant detail: Ask a new student where the vernier is, and most will say nothing.",
+      evidence: [{ sourceId: "dev", heading: "What I Built", quote: "Ask a new student where the vernier is, and most will say nothing." }],
+    }] }),
+    recoveryAnswer: '{"claims":[]}',
+  });
+
+  const result = await service.ask({ projectId: projectAUrl, question: "What is this project about?", includeSources: true });
+
+  assert.match(result.answer, /JARVIS: an offline AI assistant you talk to/i);
+  assert.match(result.answer, /points a laser at the tool/i);
+  assert.equal(result.citations[0].heading, "What I Built");
+});
+
 test("recognizes 'what is this project all about' and skips challenge boilerplate", async () => {
   const challengeCopy = "This is a submission for the Hacktoberfest Open-Source AI Challenge Week 1: Touch Grass.";
   const project = {

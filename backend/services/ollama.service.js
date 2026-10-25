@@ -42,7 +42,8 @@ async function generateText(prompt, options = {}) {
 
 function generateChatAnswer(prompt) {
   return generateText(prompt, {
-    temperature: 0.65,
+    // Chat output must follow a constrained evidence schema consistently.
+    temperature: 0.2,
     numPredict: 600,
     timeoutMs: 90000,
     format: "json",

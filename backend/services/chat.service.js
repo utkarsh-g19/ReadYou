@@ -32,6 +32,17 @@ function normalizeWhitespace(text) {
   return String(text || "").replace(/\s+/g, " ").trim();
 }
 
+function isModelDeflection(text) {
+  const normalized = String(text || "")
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .trim()
+    .replace(/^[\s"'`*_#>-]+/, "");
+  return /\b(?:couldn['’]?t|could not)\s+put\s+(?:that|it)\s+together\b/i.test(normalized) ||
+    /\bi did find this relevant detail\b/i.test(normalized) ||
+    /^(?:i\s+(?:can['’]?t|cannot)\s+find that in (?:this|the) project['’]?s sources|i\s+(?:don['’]?t|do not) have enough (?:context|information)|i\s+(?:couldn['’]?t|could not) answer (?:that|this)|i['’]?m not sure what you mean|the available project documentation does not provide enough information)\b/i.test(normalized);
+}
+
 function makeSource(sourceId, label, url, text) {
   const sections = [];
   let current = { heading: null, text: "" };
@@ -258,21 +269,22 @@ function createOverviewEvidenceFallback(sources) {
         !/^!?\[.*\]\(https?:\/\//i.test(text),
       ),
   ) || [];
-  const overviewParagraphs = paragraphs.filter(({ heading }) =>
-    /what i built|overview|about|the idea|project description/i.test(heading || ""),
-  );
   const titleText = sources.find((source) => source.sourceId === "dev-title")?.sections[0]?.text || "";
-  const projectName = titleText.split(/[:—–]/, 1)[0].trim();
+  const rawProjectName = titleText.split(/[:—–]/, 1)[0].trim();
+  const projectName = rawProjectName.replace(/^project\s+(?=\S{4,}$)/i, "");
   const escapedName = projectName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const projectNamePattern = escapedName ? new RegExp(`\\b${escapedName}\\b`, "i") : null;
-  const useful = overviewParagraphs.sort((left, right) => {
-    const score = ({ text }) =>
+  const scoredParagraphs = paragraphs.map((paragraph) => {
+    const score = ({ heading, text }) =>
+      (/what i built|overview|about|the idea|project description/i.test(heading || "") ? 3 : 0) +
       (projectNamePattern?.test(text) ? 4 : 0) +
-      (/\b(?:builds|creates|helps|lets|allows|uses|generates|turns|provides|finds|produces)\b/i.test(text) ? 2 : 0) +
+      (/\b(?:that'?s what i built|the project is|an? (?:offline |local )?(?:ai )?(?:assistant|app|application|tool|system)|builds|creates|helps|lets|allows|uses|generates|turns|provides|finds|produces|answers|manages|tracks|recommends|detects|identifies|organizes|lights up|points)\b/i.test(text) ? 3 : 0) +
       (text.length >= 100 ? 1 : 0) -
-      (text.includes("?") ? 2 : 0);
-    return score(right) - score(left);
-  })[0];
+      (text.includes("?") ? 2 : 0) -
+      (/\b(?:challenge|hacktoberfest|submission for)\b/i.test(text) ? 4 : 0);
+    return { ...paragraph, score: score(paragraph) };
+  }).sort((left, right) => right.score - left.score);
+  const useful = scoredParagraphs[0]?.score > 0 ? scoredParagraphs[0] : null;
   if (useful && article) {
     let quote = useful.text.slice(0, 500);
     if (useful.text.length > quote.length) {
@@ -504,8 +516,7 @@ function parseClaims(raw, sources) {
     if (typeof claim?.text !== "string" || !claim.text.trim() || claim.text.length > 800) continue;
     // Model deflections are not answers, even when real source text is attached.
     // Otherwise a quote can make a generic refusal look valid to the evidence checker.
-    if (/^(?:(?:i['’]?m sorry|sorry)[,!.\s]*)?i\s+(?:(?:couldn['’]?t|could not|can['’]?t|cannot|wasn['’]?t able to|am unable to)\s+(?:put|find|answer|understand)|(?:don['’]?t|do not)\s+have enough\s+(?:context|information)|(?:didn['’]?t|did not)\s+find)\b/i.test(claim.text.trim()) ||
-      /\bi did find this relevant detail\b/i.test(claim.text)) continue;
+    if (isModelDeflection(claim.text)) continue;
     const evidence = [];
     for (const item of (Array.isArray(claim.evidence) ? claim.evidence : []).slice(0, 3)) {
       const source = sourceMap.get(item?.sourceId);
@@ -674,6 +685,7 @@ function createChatService({
       throw new ChatError("The local AI service is unavailable. Please try again in a moment.", 503, "CHAT_UNAVAILABLE");
     }
     let result = parseClaims(raw, relevantSources);
+    if (isModelDeflection(result.answer)) result = { answer: UNKNOWN_ANSWER, citations: [] };
     if (result.answer === UNKNOWN_ANSWER) {
       const recoveryEvidence = interpretation.overview
         ? createOverviewEvidenceFallback(sources)
@@ -691,13 +703,13 @@ function createChatService({
             session.responseLanguage,
           ));
           const recovered = parseClaims(recoveryRaw, relevantSources);
-          if (recovered.answer !== UNKNOWN_ANSWER) result = recovered;
+          if (recovered.answer !== UNKNOWN_ANSWER && !isModelDeflection(recovered.answer)) result = recovered;
         } catch {
           // Keep the evidence-based fallback available if the short retry fails.
         }
       }
 
-      if (result.answer === UNKNOWN_ANSWER) {
+      if (result.answer === UNKNOWN_ANSWER || isModelDeflection(result.answer)) {
         result = recoveryEvidence || {
           answer: "I can't find that in this project's sources yet. Want to ask about something the submission or README does describe?",
           citations: [],
